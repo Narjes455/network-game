@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>أكاديمية الشبكات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eaf1f8; --panel:#ffffff; --ink:#1d2a3a; --muted:#5f6f82; --line:#d5dfea;
+  --accent:#0b6bcb; --accent-soft:#e3f0fd; --ok:#1a9e55; --bad:#d64545; --gold:#f2b705;
+  --switch:#2b7bd6; --router:#12805c; --grid:#d3deea; --term:#0f1720; --term-ink:#c8f7c5;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0f1722;--panel:#18222f;--ink:#e6edf5;--muted:#93a3b6;--line:#2a3848;--accent:#4ea1ff;--accent-soft:#1b2d44;--grid:#1d2a39}
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{font-family:'Tajawal',system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+button{font-family:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font-family:inherit}
+.screen{display:flex;flex-direction:column;height:100dvh}
+/* home */
+#home{overflow:auto;padding:20px 16px 30px}
+.home-head{text-align:center;margin:10px 0 18px}
+.logo{font-size:52px}
+.home-head h1{margin:4px 0;font-size:28px;font-weight:800}
+.home-head p{margin:0;color:var(--muted)}
+.total{display:inline-block;margin-top:10px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:5px 14px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;width:100%;max-width:900px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px 12px;text-align:right;display:flex;flex-direction:column;gap:4px;min-height:118px;position:relative}
+.card .n{width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.card b{font-size:16px}
+.card small{color:var(--muted)}
+.card .st{margin-top:auto;letter-spacing:2px}
+.card.locked{opacity:.5}
+.card.locked .n{background:var(--muted)}
+.card.done{border-color:var(--ok)}
+.card.lab .n{background:#8a4fd8}
+.link-btn{display:block;margin:20px auto 0;background:none;border:0;color:var(--muted);text-decoration:underline;font-size:13px}
+/* game */
+.ghead{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.ghead h2{flex:1;margin:0;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:6px 9px;font-size:15px;font-weight:700}
+.toolbar{display:flex;gap:6px;padding:7px 10px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.toolbar::-webkit-scrollbar{display:none}
+.tb{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:5px 8px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:56px}
+.tb .i{font-size:19px;line-height:1.1}
+.tb.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sep{flex:0 0 1px;background:var(--line);margin:4px 2px}
+.goals{background:var(--panel);border-bottom:1px solid var(--line);padding:6px 12px;font-size:13.5px}
+.goals .gh{display:flex;align-items:center;font-weight:800;gap:6px;cursor:pointer}
+.goals .gh span{flex:1}
+.goals ul{list-style:none;margin:4px 0 2px;padding:0}
+.goals li{padding:2px 0;color:var(--muted)}
+.goals li.ok{color:var(--ok);font-weight:700}
+main{flex:1;position:relative;min-height:0}
+#ws{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none;background-color:var(--bg);background-image:radial-gradient(var(--grid) 1.2px,transparent 1.2px);background-size:22px 22px}
+.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);pointer-events:none;padding:20px;line-height:1.8}
+.status{padding:7px 12px;background:var(--panel);border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);min-height:34px}
+.status b{color:var(--ink)}
+.dev{cursor:grab}
+.dev .box{fill:var(--panel);stroke:var(--line);stroke-width:2}
+.dev.pending .box,.dev.pending .sw,.dev.pending .rt{stroke:var(--accent);stroke-width:3;stroke-dasharray:5 3}
+.dev .nm{font-size:12.5px;font-weight:800;fill:var(--ink);text-anchor:middle}
+.dev .ip{font-size:10.5px;fill:var(--muted);text-anchor:middle;direction:ltr}
+.sw{fill:var(--switch);stroke:#fff;stroke-width:2}
+.rt{fill:var(--router);stroke:#fff;stroke-width:2}
+.wire{stroke:var(--ok);stroke-width:3}
+.hit{stroke:transparent;stroke-width:18}
+.ifl{font-size:9.5px;fill:var(--muted);text-anchor:middle;direction:ltr;font-weight:700}
+.ifl-bg{fill:var(--bg);opacity:.88}
+/* sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:60dvh;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.18);display:flex;flex-direction:column;z-index:20;max-width:720px;margin:0 auto}
+.sheet-head{display:flex;align-items:center;padding:12px 16px 6px}
+.sheet-head b{flex:1;font-size:16px}
+.x{border:0;background:var(--accent-soft);border-radius:50%;width:32px;height:32px;font-size:15px}
+.tabs{display:flex;gap:6px;padding:0 16px 8px;overflow-x:auto}
+.tabs button{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:5px 11px;font-weight:700;font-size:13.5px}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sheet-body{overflow:auto;padding:0 16px 16px}
+.f{display:block;margin-bottom:9px;font-size:13.5px;font-weight:700}
+.f input,.f select,.f textarea{display:block;width:100%;margin-top:3px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+.f input[dir=ltr]{text-align:left}
+.f input:disabled,.f select:disabled{opacity:.6}
+.f small{color:var(--muted);font-weight:400}
+.seg{display:flex;gap:6px;margin-bottom:10px}
+.seg button{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px;font-weight:700;font-size:13.5px}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.box2{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.box2 h4{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:8px}
+.box2 h4 label{margin-inline-start:auto;font-size:13px;display:flex;align-items:center;gap:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1.3fr 1fr auto;gap:6px;align-items:end}
+.save{width:100%;padding:10px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:800;font-size:15px}
+.btn2{width:100%;padding:9px;border:1px solid var(--accent);border-radius:12px;background:var(--accent-soft);font-weight:800;font-size:14px;margin-bottom:8px}
+.add{border:0;background:var(--ok);color:#fff;border-radius:10px;padding:9px 12px;font-weight:800;margin-bottom:9px}
+.note{font-size:13.5px;color:var(--muted);line-height:1.8}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;direction:ltr;margin-bottom:10px}
+.tbl td{border-bottom:1px solid var(--line);padding:5px 4px}
+.tbl .del{border:0;background:none;color:var(--bad);font-size:15px}
+.code{font-family:ui-monospace,Consolas,monospace}
+#term{background:var(--term);color:var(--term-ink);font-family:ui-monospace,Consolas,monospace;font-size:12.5px;direction:ltr;text-align:left;padding:10px;border-radius:10px 10px 0 0;height:190px;overflow:auto;white-space:pre-wrap}
+#term .hint{color:#ffd479;direction:rtl;text-align:right;font-family:'Tajawal',sans-serif}
+#term .err{color:#ff8b8b}
+.term-in{display:flex;align-items:center;background:var(--term);border-radius:0 0 10px 10px;padding:6px 10px;direction:ltr;border-top:1px solid #253242}
+.term-in span{color:var(--term-ink);font-family:ui-monospace,Consolas,monospace;font-size:13px;margin-right:6px}
+.term-in input{flex:1;background:transparent;border:0;outline:0;color:#fff;font-family:ui-monospace,Consolas,monospace;font-size:16px;min-width:0}
+.url{display:flex;gap:6px;direction:ltr;margin-bottom:8px}
+.url input{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+.url button{border:0;background:var(--accent);color:#fff;border-radius:10px;padding:0 14px;font-weight:800}
+.page{border:1px solid var(--line);border-radius:12px;min-height:130px;padding:14px;background:var(--bg);line-height:1.8}
+.page .pt{font-weight:800;font-size:17px;margin-bottom:6px}
+.page.err{border-color:var(--bad)}
+.pg-empty{color:var(--muted);text-align:center;padding-top:30px}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(5,12,20,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.mbox{background:var(--panel);border-radius:20px;max-width:520px;width:100%;max-height:86dvh;overflow:auto;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.mbox h3{margin:0 0 4px;font-size:21px}
+.mbox .tag{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:2px 12px;font-size:13px;font-weight:800;margin-bottom:8px}
+.mbox p,.mbox li{line-height:1.85;font-size:15px}
+.mbox ul,.mbox ol{padding-inline-start:20px;margin:6px 0}
+.mbox .task{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-weight:700}
+.mbox .big{font-size:44px;text-align:center;letter-spacing:6px;margin:8px 0}
+.mbtns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.mbtns button{flex:1;min-width:120px;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-weight:800;font-size:15px}
+.mbtns .pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:12px;font-weight:700;z-index:60;max-width:92vw;text-align:center;line-height:1.6;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.toast.ok{background:var(--ok);color:#fff}
+.toast.bad{background:var(--bad);color:#fff}
+.mission{background:var(--panel);border-bottom:1px solid var(--line);padding:7px 12px;font-size:13.5px;max-height:34dvh;overflow:auto}
+.mission .gh{display:flex;align-items:center;font-weight:800;gap:6px;cursor:pointer}
+.mission .gh span{flex:1}
+.mission p{margin:4px 0;line-height:1.75}
+.mission ul{list-style:none;margin:4px 0 2px;padding:0}
+.mission li{padding:2px 0;color:var(--muted)}
+.mission li.ok{color:var(--ok);font-weight:700}
+.mission li.no{color:var(--bad);font-weight:700}
+.status{display:flex;align-items:center;gap:10px}
+.status #statusTxt{flex:1;min-width:0}
+.check{flex:0 0 auto;border:0;background:var(--ok);color:#fff;border-radius:12px;padding:9px 16px;font-weight:800;font-size:15px;box-shadow:0 4px 12px rgba(26,158,85,.3)}
+.res{list-style:none;padding:0;margin:10px 0}
+.res li{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;font-weight:700;font-size:14.5px;line-height:1.6}
+.res li.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,transparent)}
+.res li.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 7%,transparent)}
+.res li small{display:block;font-weight:400;color:var(--muted);font-size:13.5px}
+.reqs{margin:6px 0 0;padding-inline-start:20px}
+</style>
+</head>
+<body>
+
+<section id="home" class="screen">
+  <div class="home-head">
+    <div class="logo">🌐</div>
+    <h1>أكاديمية الشبكات</h1>
+    <p>كل مرحلة مهمة: ابنِ الشبكة كاملة من الصفر، ثم اضغط «تحقق» وشوف إذا تعدّيتها</p>
+    <div class="total" id="total"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <button class="link-btn" id="resetAll">إعادة ضبط التقدّم</button>
+</section>
+
+<section id="game" class="screen" hidden>
+  <div class="ghead">
+    <button class="ib" id="gBack">→</button>
+    <h2 id="gTitle"></h2>
+    <button class="ib" id="gLesson" title="الدرس">📘</button>
+    <button class="ib" id="gHint" title="تلميح">💡</button>
+    <button class="ib" id="gReset" title="إعادة">🔄</button>
+  </div>
+  <div class="toolbar" id="toolbar"></div>
+  <div class="mission" id="mission"></div>
+  <main>
+    <svg id="ws" xmlns="http://www.w3.org/2000/svg"><g id="world"></g><g id="pkt"></g></svg>
+    <div class="empty" id="empty">الشبكة فاضية — ابنها من الصفر 👆<br>أضف الأجهزة من الشريط، وصّلها بالكيبل 🔌، واضبط إعداداتها</div>
+  </main>
+  <div class="status"><span id="statusTxt"></span><button class="check" id="checkBtn">✔ تحقق</button></div>
+</section>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-head"><b id="sheetTitle"></b><button class="x" id="sheetClose">✕</button></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="sheet-body" id="panes"></div>
+</div>
+
+<div class="modal" id="modal" hidden><div class="mbox" id="mbox"></div></div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+const $=s=>document.querySelector(s);
+const svg=$('#ws'),world=$('#world'),pktLayer=$('#pkt');
+const HOST=['pc','laptop','server'];
+const ALL=['pc','laptop','server','switch','router'];
+const META={
+  pc:{label:'كمبيوتر',icon:'🖥️',prefix:'PC',max:1},
+  laptop:{label:'لابتوب',icon:'💻',prefix:'Laptop',max:1},
+  server:{label:'سيرفر',icon:'🗄️',prefix:'Server',max:1},
+  switch:{label:'سويتش',icon:'🔀',prefix:'Switch',max:8},
+  router:{label:'راوتر',icon:'📶',prefix:'Router',max:4}
+};
+const MASKS=['255.255.255.0','255.255.0.0','255.0.0.0'];
+const HINTS={
+  move:'<b>✋ تحريك:</b> اسحب الأجهزة، واضغط على أي جهاز لفتح إعداداته.',
+  cable:'<b>🔌 كيبل:</b> اضغط على جهاز ثم على جهاز ثاني لتوصيلهم.',
+  ping:'<b>✉️ Ping:</b> اضغط على الجهاز المرسل ثم على المستقبل.',
+  delete:'<b>❌ حذف:</b> اضغط على جهاز أو كيبل لحذفه.'
+};
+
+/* ================= CHECK HELPERS ================= */
+const R24='255.255.255.0',R16='255.255.0.0';
+const OK={ok:true},no=why=>({ok:false,why});
+const T=t=>S.devices.filter(d=>d.type===t);
+const clients=()=>S.devices.filter(d=>d.type==='pc'||d.type==='laptop');
+const hostsAll=()=>S.devices.filter(d=>HOST.includes(d.type));
+const inNet=(d,net,mask=R24)=>!!d.ip&&d.mask===mask&&sameNet(d.ip,net,mask);
+const netOf=(net,mask=R24)=>clients().filter(d=>inNet(d,net,mask));
+const serverAt=ip=>T('server').find(s=>s.ip===ip);
+const leased=d=>d.dhcp&&d.ip&&d.lease&&dev(d.lease)&&dev(d.lease).svc.dhcp.on;
+const dnsHas=n=>T('server').some(s=>s.svc.dns.on&&s.svc.dns.records.some(r=>r.name===n));
+function need(list,n,what){return list.length>=n?OK:no(`المطلوب ${n} ${what} على الأقل، وعندك ${list.length}.`)}
+function allIn(list,net,mask=R24){
+  if(!list.length)return no('ما فيه أجهزة.');
+  for(const d of list){
+    if(!d.ip)return no(`${d.name} ما عنده عنوان IP.`);
+    if(d.mask!==mask)return no(`${d.name}: الـ Subnet Mask لازم يكون ${mask}.`);
+    if(!sameNet(d.ip,net,mask))return no(`${d.name} عنوانه ${d.ip} مو من الشبكة ${net}.`);
+  }return OK;
+}
+function onSwitch(list){
+  if(!list.length)return no('ما فيه أجهزة.');
+  for(const d of list)if(!linksOf(d.id).some(l=>dev(other(l,d.id)).type==='switch'))return no(`${d.name} مو موصول بسويتش.`);
+  return OK;
+}
+function reach(from,to){
+  if(!from.length||!to.length)return no('ما فيه أجهزة كافية للاختبار.');
+  const seen=new Set();
+  for(const a of from)for(const b of to){
+    if(a===b)continue;const k=[a.id,b.id].sort().join();if(seen.has(k))continue;seen.add(k);
+    if(!a.ip)return no(`${a.name} ما عنده عنوان IP.`);
+    if(!b.ip)return no(`${b.name} ما عنده عنوان IP.`);
+    const r=pingCore(a.id,b.ip);
+    if(!r.ok)return no(`${a.name} ✉️ ${b.name}: ${r.hint||'فشل الاتصال.'}`);
+  }return OK;
+}
+function leasedAll(list){
+  if(!list.length)return no('ما فيه أجهزة.');
+  for(const d of list){
+    if(!d.dhcp)return no(`${d.name} على Static، لازم تخليه DHCP (تلقائي).`);
+    if(!leased(d))return no(`${d.name} ما أخذ عنوان من سيرفر DHCP شغال. افتحه واضغط «طلب عنوان من DHCP».`);
+  }return OK;
+}
+function webCheck(sId,t){
+  let ip=t;
+  if(!ipOk(t)){const r=resolveName(sId,t);if(!r.ok)return r;ip=r.ip}
+  const p=pingCore(sId,ip);
+  if(!p.ok)return{ok:false,hint:p.hint||'ما وصل للسيرفر.'};
+  if(p.dstDev.type!=='server'||!p.dstDev.svc.http.on)return{ok:false,hint:`${p.dstDev.name} ما يشغّل خدمة HTTP.`};
+  return{ok:true};
+}
+function webAll(list,name){
+  if(!list.length)return no('ما فيه أجهزة.');
+  for(const d of list){const r=webCheck(d.id,name);if(!r.ok)return no(`${d.name} ما فتح ${name}: ${r.hint}`)}
+  return OK;
+}
+
+/* ================= LEVELS ================= */
+const LEVELS=[
+{id:'m1',title:'جهازين وكيبل',tag:'التوصيل وIP',
+ lesson:`<p>الشبكة = أجهزة متصلة ببعض عشان تتبادل البيانات.</p>
+ <ul><li><b>الكيبل</b> هو الطريق بين جهازين.</li>
+ <li>كل جهاز يحتاج <b>عنوان IP</b> مثل <span dir="ltr">192.168.1.5</span>: أول 3 أرقام = الشبكة، والرقم الأخير = الجهاز.</li>
+ <li>الأجهزة اللي في <b>نفس الشبكة</b> تتواصل مباشرة. <b>Ping</b> يختبر الاتصال.</li></ul>`,
+ task:'عندك جهازين كمبيوتر في غرفة واحدة. وصّلهم ببعض مباشرة بكيبل، وأعطهم عناوين من الشبكة 192.168.1.0 بحيث يتواصلون.',
+ hint:'أضف 🖥️ كمبيوتر مرتين. بأداة 🔌 اضغط الأول ثم الثاني. بأداة ✋ افتح كل جهاز: الأول 192.168.1.1 والثاني 192.168.1.2. جرّب Ping ثم تحقق.',
+ reqs:[
+  ['جهازين كمبيوتر',()=>need(T('pc'),2,'أجهزة كمبيوتر')],
+  ['عناوينهم من الشبكة 192.168.1.0',()=>allIn(T('pc'),'192.168.1.0')],
+  ['الجهازين يتواصلون (Ping ناجح)',()=>reach(T('pc'),T('pc'))]]},
+
+{id:'m2',title:'مكتب صغير',tag:'السويتش',
+ lesson:`<p>الكمبيوتر فيه منفذ شبكة واحد بس، فلو عندك أكثر من جهازين تحتاج <b>سويتش (Switch)</b>.</p>
+ <ul><li>السويتش فيه 8 منافذ، كل جهاز يتوصل في منفذ.</li><li>يوصل البيانات بين أجهزة <b>نفس الشبكة</b>.</li><li>السويتش ما يحتاج عنوان IP.</li></ul>`,
+ task:'مكتب فيه 4 موظفين. ابنِ شبكة تربط 4 أجهزة كمبيوتر بسويتش، باستخدام الشبكة 10.0.0.0 (Mask 255.255.255.0).',
+ hint:'أضف سويتش و4 أجهزة كمبيوتر، وصّل كل جهاز بالسويتش. العناوين: 10.0.0.1 و 10.0.0.2 و 10.0.0.3 و 10.0.0.4',
+ reqs:[
+  ['4 أجهزة كمبيوتر',()=>need(T('pc'),4,'أجهزة كمبيوتر')],
+  ['سويتش',()=>need(T('switch'),1,'سويتش')],
+  ['كل جهاز موصول بالسويتش',()=>onSwitch(T('pc'))],
+  ['كل العناوين من الشبكة 10.0.0.0',()=>allIn(T('pc'),'10.0.0.0')],
+  ['كل الأجهزة تتواصل مع بعض',()=>reach(T('pc'),T('pc'))]]},
+
+{id:'m3',title:'سيرفر المكتب',tag:'أنواع الأجهزة',
+ lesson:`<p>في أي شركة بتلقى أنواع أجهزة مختلفة: كمبيوتر، لابتوب، و<b>سيرفر</b> يقدّم خدمات للباقين (ملفات، مواقع، عناوين…).</p>
+ <ul><li>السيرفر عادةً ياخذ <b>عنوان ثابت</b> ومميز (مثل .100) عشان الكل يعرف وين يلقاه.</li><li>لا تكرر نفس العنوان لجهازين!</li></ul>`,
+ task:'ابنِ شبكة 192.168.5.0 فيها 3 أجهزة كمبيوتر + لابتوب + سيرفر عنوانه 192.168.5.100، وكل الأجهزة لازم توصل للسيرفر.',
+ hint:'سويتش واحد يكفي. العناوين: الأجهزة 192.168.5.1 إلى 192.168.5.4، والسيرفر 192.168.5.100',
+ reqs:[
+  ['3 أجهزة كمبيوتر',()=>need(T('pc'),3,'أجهزة كمبيوتر')],
+  ['لابتوب',()=>need(T('laptop'),1,'لابتوب')],
+  ['سيرفر عنوانه 192.168.5.100',()=>serverAt('192.168.5.100')?OK:no('ما فيه سيرفر بالعنوان 192.168.5.100.')],
+  ['كل الأجهزة في الشبكة 192.168.5.0',()=>allIn(hostsAll(),'192.168.5.0')],
+  ['كل الأجهزة توصل للسيرفر',()=>{const s=serverAt('192.168.5.100');return s?reach(clients(),[s]):no('السيرفر غير موجود.')}]]},
+
+{id:'m4',title:'الشبكة الكبيرة',tag:'Subnet Mask',
+ lesson:`<p><b>Subnet Mask</b> يحدد أي جزء من العنوان هو الشبكة:</p>
+ <ul><li><span dir="ltr">255.255.255.0</span> ← أول 3 أرقام شبكة (254 جهاز)</li><li><span dir="ltr">255.255.0.0</span> ← أول رقمين شبكة (65 ألف جهاز)</li></ul>
+ <p>مع <span dir="ltr">255.255.0.0</span> العنوانين <span dir="ltr">172.16.1.5</span> و <span dir="ltr">172.16.2.9</span> في <b>نفس الشبكة</b> ويتواصلون بدون راوتر.</p>`,
+ task:'شركة كبيرة فيها أكثر من 254 جهاز، فاختارت الشبكة 172.16.0.0 بماسك 255.255.0.0. ضع 3 أجهزة على نفس السويتش، كل جهاز رقمه الثالث مختلف (172.16.1.x و 172.16.2.x و 172.16.3.x)، وخلّهم يتواصلون — بدون راوتر.',
+ hint:'العناوين: 172.16.1.10 و 172.16.2.10 و 172.16.3.10 — ولا تنسى تغيّر الـ Mask في كل جهاز إلى 255.255.0.0',
+ reqs:[
+  ['3 أجهزة على الأقل',()=>need(clients(),3,'أجهزة')],
+  ['كل العناوين من 172.16.0.0 بماسك 255.255.0.0',()=>allIn(clients(),'172.16.0.0',R16)],
+  ['الرقم الثالث مختلف في 3 أجهزة',()=>{const s=new Set(clients().filter(d=>d.ip).map(d=>d.ip.split('.')[2]));return s.size>=3?OK:no(`الرقم الثالث في العناوين لازم يختلف، عندك ${s.size} قيمة مختلفة بس.`)}],
+  ['بدون راوتر',()=>T('router').length?no('هذي المهمة بدون راوتر، احذفه.'):OK],
+  ['كل الأجهزة تتواصل',()=>reach(clients(),clients())]]},
+
+{id:'m5',title:'قسمين وراوتر',tag:'الراوتر والبوابة',
+ lesson:`<p>السويتش يربط أجهزة نفس الشبكة. عشان تربط <b>شبكتين مختلفتين</b> تحتاج <b>راوتر</b>.</p>
+ <ul><li>كل منفذ في الراوتر له IP من الشبكة الموصولة فيه.</li>
+ <li>عنوان منفذ الراوتر = <b>Default Gateway</b> لأجهزة هذي الشبكة (باب الخروج 🚪).</li>
+ <li>بدون Gateway الجهاز ما يعرف يطلع من شبكته، ولا الرد يرجع!</li></ul>`,
+ task:'قسم المبيعات يستخدم الشبكة 192.168.1.0 وقسم المحاسبة 192.168.2.0. كل قسم فيه جهازين على سويتش خاص فيه. اربط القسمين براوتر بحيث كل الأجهزة تتواصل.',
+ hint:'Switch0: جهازين 192.168.1.10 و .11 بوابتهم 192.168.1.1. Switch1: جهازين 192.168.2.10 و .11 بوابتهم 192.168.2.1. وصّل الراوتر بالسويتشين واكتب لمنافذه 192.168.1.1 و 192.168.2.1',
+ reqs:[
+  ['جهازين في المبيعات 192.168.1.0',()=>need(netOf('192.168.1.0'),2,'أجهزة في شبكة المبيعات')],
+  ['جهازين في المحاسبة 192.168.2.0',()=>need(netOf('192.168.2.0'),2,'أجهزة في شبكة المحاسبة')],
+  ['كل جهاز موصول بسويتش',()=>onSwitch(clients())],
+  ['راوتر يربط القسمين',()=>need(T('router'),1,'راوتر')],
+  ['كل الأجهزة تتواصل بين القسمين',()=>reach(clients(),clients())]]},
+
+{id:'m6',title:'ثلاث أقسام',tag:'راوتر بثلاث منافذ',
+ lesson:`<p>الراوتر الواحد يقدر يربط أكثر من شبكتين — كل منفذ شبكة مستقلة.</p>
+ <ul><li>كل منفذين في الراوتر لازم يكونون في شبكات مختلفة.</li><li>أجهزة كل شبكة بوابتها = منفذ الراوتر اللي في شبكتها.</li></ul>`,
+ task:'الشركة فيها 3 أقسام: 192.168.10.0 و 192.168.20.0 و 192.168.30.0. كل قسم فيه جهازين على الأقل. اربطهم كلهم بـ راوتر واحد فقط.',
+ hint:'3 سويتشات، كل سويتش عليه جهازين. منافذ الراوتر: 192.168.10.1 و 192.168.20.1 و 192.168.30.1، وكل جهاز بوابته منفذ قسمه.',
+ reqs:[
+  ['جهازين في 192.168.10.0',()=>need(netOf('192.168.10.0'),2,'أجهزة')],
+  ['جهازين في 192.168.20.0',()=>need(netOf('192.168.20.0'),2,'أجهزة')],
+  ['جهازين في 192.168.30.0',()=>need(netOf('192.168.30.0'),2,'أجهزة')],
+  ['راوتر واحد فقط',()=>T('router').length===1?OK:no(`المطلوب راوتر واحد بالضبط، وعندك ${T('router').length}.`)],
+  ['كل الأقسام تتواصل',()=>reach(clients(),clients())]]},
+
+{id:'m7',title:'العناوين التلقائية',tag:'DHCP',
+ lesson:`<p>كتابة العناوين يدوي لـ 200 جهاز متعبة 😅 — هنا يجي <b>DHCP</b>.</p>
+ <ul><li>سيرفر DHCP يوزّع على الأجهزة: IP + Mask + Gateway + DNS تلقائياً.</li>
+ <li>تحدد له <b>بداية العناوين</b> (Start IP) ويعطي كل جهاز عنوان فاضي بعده.</li>
+ <li>السيرفر نفسه عنوانه ثابت (Static). وطلب DHCP ما يعدّي الراوتر.</li></ul>`,
+ task:'شبكة 192.168.1.0 فيها سيرفر عنوانه 192.168.1.2 يوزّع العناوين بـ DHCP. أضف 4 أجهزة (كمبيوتر أو لابتوب) تاخذ عناوينها تلقائياً وتوصل للسيرفر.',
+ hint:'السيرفر: IP 192.168.1.2 ← تبويب الخدمات: فعّل DHCP، Start IP = 192.168.1.10 واحفظ. بعدها افتح كل جهاز واختر «تلقائي (DHCP)».',
+ reqs:[
+  ['سيرفر 192.168.1.2 يشغّل DHCP',()=>{const s=serverAt('192.168.1.2');return !s?no('ما فيه سيرفر بالعنوان 192.168.1.2.'):s.svc.dhcp.on?OK:no('خدمة DHCP مطفأة في السيرفر.')}],
+  ['4 أجهزة على الأقل',()=>need(clients(),4,'أجهزة')],
+  ['كل الأجهزة تاخذ عناوينها من DHCP',()=>leasedAll(clients())],
+  ['كل الأجهزة في الشبكة 192.168.1.0',()=>allIn(clients(),'192.168.1.0')],
+  ['كل الأجهزة توصل للسيرفر',()=>{const s=serverAt('192.168.1.2');return s?reach(clients(),[s]):no('السيرفر غير موجود.')}]]},
+
+{id:'m8',title:'موقع المدرسة',tag:'DNS وHTTP',
+ lesson:`<p>نحفظ أسماء المواقع مو أرقامها. <b>DNS</b> يحوّل الاسم إلى IP مثل جهات الاتصال 📒.</p>
+ <ul><li>سيرفر DNS فيه سجلات: <span dir="ltr">www.site.com → 192.168.1.100</span></li>
+ <li>كل جهاز لازم يعرف عنوان سيرفر الـ DNS (في إعداداته).</li>
+ <li>خدمة <b>HTTP</b> هي اللي تعرض صفحة الموقع في المتصفح.</li></ul>`,
+ task:'المدرسة تبغى موقع داخلي اسمه www.school.com. ابنِ شبكة فيها سيرفر يشغّل الموقع، و3 أجهزة على الأقل تفتح الموقع بالاسم من المتصفح.',
+ hint:'السيرفر 192.168.1.100: فعّل HTTP و DNS وأضف سجل www.school.com = 192.168.1.100. في كل جهاز اكتب DNS Server = 192.168.1.100. جرّب من تبويب «المتصفح».',
+ reqs:[
+  ['سيرفر يشغّل موقع (HTTP)',()=>T('server').some(s=>s.svc.http.on)?OK:no('ما فيه سيرفر خدمة HTTP فيه شغالة.')],
+  ['سجل DNS للاسم www.school.com',()=>dnsHas('www.school.com')?OK:no('ما فيه سيرفر DNS شغال فيه سجل www.school.com.')],
+  ['3 أجهزة على الأقل',()=>need(clients(),3,'أجهزة')],
+  ['كل الأجهزة تفتح www.school.com',()=>webAll(clients(),'www.school.com')]]},
+
+{id:'m9',title:'شبكة ذكية',tag:'DHCP + DNS',
+ lesson:`<p>في الشبكات الحقيقية الموظف ما يكتب ولا إعداد: DHCP يعطيه <b>كل شي</b> — العنوان والبوابة وعنوان الـ DNS.</p>
+ <ul><li>في إعدادات DHCP بالسيرفر فيه خانة <b>DNS Server</b>، هذا اللي ينعطى للأجهزة.</li>
+ <li>نفس السيرفر يقدر يشغّل DHCP و DNS و HTTP مع بعض.</li></ul>`,
+ task:'ابنِ شبكة فيها 4 أجهزة على الأقل، كلها تاخذ إعداداتها تلقائياً من DHCP (بدون ما تكتب DNS يدوي)، وكلها تفتح الموقع www.company.com',
+ hint:'سيرفر 192.168.1.100: DHCP (Start 192.168.1.10، DNS = 192.168.1.100) + DNS (www.company.com = 192.168.1.100) + HTTP. احفظ الخدمات قبل ما تخلي الأجهزة DHCP.',
+ reqs:[
+  ['4 أجهزة على الأقل',()=>need(clients(),4,'أجهزة')],
+  ['كل الأجهزة على DHCP',()=>leasedAll(clients())],
+  ['سجل DNS للاسم www.company.com',()=>dnsHas('www.company.com')?OK:no('ما فيه سيرفر DNS شغال فيه سجل www.company.com.')],
+  ['كل الأجهزة تفتح www.company.com',()=>webAll(clients(),'www.company.com')]]},
+
+{id:'m10',title:'فرعين',tag:'Static Routing',
+ lesson:`<p>الراوتر يعرف بس الشبكات <b>الموصولة فيه مباشرة</b>. لو عندك راوترين، كل واحد ما يعرف شبكة الثاني!</p>
+ <ul><li>تعلّمه بـ <b>Static Route</b>: الشبكة البعيدة + Mask + <b>Next Hop</b> (عنوان الراوتر الثاني).</li>
+ <li>الراوترين يتصلون ببعض بشبكة صغيرة خاصة، مثل <span dir="ltr">10.0.0.0</span>.</li>
+ <li>لازم Route في <b>الاتجاهين</b> عشان الرد يرجع.</li></ul>`,
+ task:'فرع جدة يستخدم 192.168.1.0 وفرع الرياض 192.168.2.0. كل فرع له راوتر خاص، والراوترين موصولين ببعض مباشرة. خلّ أجهزة الفرعين تتواصل (جهازين على الأقل في كل فرع).',
+ hint:'Router0: منفذ جدة 192.168.1.1 + منفذ الربط 10.0.0.1، وRoute: 192.168.2.0 عبر 10.0.0.2. Router1: منفذ الرياض 192.168.2.1 + منفذ الربط 10.0.0.2، وRoute: 192.168.1.0 عبر 10.0.0.1',
+ reqs:[
+  ['راوترين',()=>need(T('router'),2,'راوترات')],
+  ['الراوترين موصولين ببعض مباشرة',()=>S.links.some(l=>dev(l.a).type==='router'&&dev(l.b).type==='router')?OK:no('وصّل الراوترين بكيبل مباشر.')],
+  ['جهازين في فرع جدة 192.168.1.0',()=>need(netOf('192.168.1.0'),2,'أجهزة')],
+  ['جهازين في فرع الرياض 192.168.2.0',()=>need(netOf('192.168.2.0'),2,'أجهزة')],
+  ['الفرعين يتواصلون',()=>reach(netOf('192.168.1.0'),netOf('192.168.2.0'))]]},
+
+{id:'m11',title:'شركة متكاملة',tag:'كل شي مع بعض',
+ lesson:`<p>الحين تجمع كل اللي تعلمته في شبكة شركة حقيقية:</p>
+ <ul><li>شبكة للموظفين تاخذ عناوينها من DHCP.</li><li>شبكة ثانية للسيرفرات فيها الموقع والـ DNS.</li><li>راوتر يربطهم.</li></ul>
+ <p>⚠️ تذكّر: سيرفر DHCP لازم يكون في <b>نفس شبكة</b> الموظفين، والـ Gateway والـ DNS اللي يوزعها لازم تكون صحيحة.</p>`,
+ task:'شبكة الموظفين 192.168.1.0 فيها 3 أجهزة على الأقل تاخذ عناوينها من DHCP. شبكة السيرفرات 192.168.2.0 فيها سيرفر يشغّل الموقع www.company.com. كل الموظفين لازم يفتحون الموقع بالاسم.',
+ hint:'شبكة 1: سيرفر DHCP 192.168.1.2 (Start 192.168.1.10، Gateway 192.168.1.1، DNS 192.168.2.100). شبكة 2: سيرفر 192.168.2.100 بوابته 192.168.2.1 يشغّل DNS + HTTP. الراوتر: 192.168.1.1 و 192.168.2.1',
+ reqs:[
+  ['3 أجهزة موظفين في 192.168.1.0',()=>need(netOf('192.168.1.0'),3,'أجهزة')],
+  ['كل أجهزة الموظفين على DHCP',()=>leasedAll(clients())],
+  ['سيرفر الموقع في 192.168.2.0',()=>T('server').some(s=>s.ip&&sameNet(s.ip,'192.168.2.0',R24)&&s.svc.http.on)?OK:no('ما فيه سيرفر في الشبكة 192.168.2.0 يشغّل HTTP.')],
+  ['كل الموظفين يفتحون www.company.com',()=>webAll(clients(),'www.company.com')]]},
+
+{id:'m12',title:'التحدي النهائي',tag:'🏆 ثلاث فروع',
+ lesson:`<p>🏆 المهمة الأخيرة: شبكة مؤسسة فيها إدارة وفرعين، كل واحد له راوتر.</p>
+ <ul><li>فكّر في التصميم أول: مين يتصل بمين؟ وأي شبكة بين كل راوترين؟</li>
+ <li>كل راوتر لازم يعرف طريق لكل شبكة ما هي موصولة فيه.</li>
+ <li>DHCP ما يعدّي الراوتر، يعني كل فرع يحتاج سيرفر DHCP خاص فيه.</li></ul>`,
+ task:'الإدارة 192.168.1.0 فيها سيرفر يشغّل الموقع www.hq.com. فرع 192.168.2.0 وفرع 192.168.3.0، كل فرع فيه جهازين على الأقل تاخذ عناوينها من DHCP. كل فرع وإدارة لها راوتر (3 راوترات). كل الأجهزة تفتح www.hq.com، والفرعين يتواصلون.',
+ hint:'Router0 (الإدارة) موصول بـ Router1 (شبكة 10.0.1.0) وبـ Router2 (شبكة 10.0.2.0). Router0 يحتاج Routes للفرعين، وكل فرع يحتاج Routes لشبكتين (عبر Router0). في كل فرع سيرفر DHCP يعطي DNS = 192.168.1.100.',
+ reqs:[
+  ['3 راوترات',()=>need(T('router'),3,'راوترات')],
+  ['سيرفر الإدارة في 192.168.1.0 يشغّل الموقع',()=>T('server').some(s=>s.ip&&sameNet(s.ip,'192.168.1.0',R24)&&s.svc.http.on)?OK:no('ما فيه سيرفر في 192.168.1.0 يشغّل HTTP.')],
+  ['جهازين في فرع 192.168.2.0',()=>need(netOf('192.168.2.0'),2,'أجهزة')],
+  ['جهازين في فرع 192.168.3.0',()=>need(netOf('192.168.3.0'),2,'أجهزة')],
+  ['كل أجهزة الكمبيوتر واللابتوب على DHCP',()=>leasedAll(clients())],
+  ['الفرعين يتواصلون',()=>reach(netOf('192.168.2.0'),netOf('192.168.3.0'))],
+  ['كل الأجهزة تفتح www.hq.com',()=>webAll(clients(),'www.hq.com')]]},
+];
+const LAB={id:'lab',title:'المختبر الحر',tag:'🧪 جرّب أي شبكة',lesson:'',task:'',hint:'',reqs:[]};
+
+/* ================= STATE ================= */
+let P=loadP()||{stars:{},cur:null};
+let L=null,S=null,mode='move',pending=null,drag=null,busy=false,openId=null,raf=0,missionOpen=true;
+const termHist={},webState={};
+function loadP(){try{return JSON.parse(localStorage.getItem('netacademy-v2'))}catch(e){return null}}
+function storeP(){try{localStorage.setItem('netacademy-v2',JSON.stringify(P))}catch(e){}}
+function save(){if(L){P.cur={lvl:L.id,S};storeP()}}
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dev=id=>S.devices.find(d=>d.id===id);
+const linksOf=id=>S.links.filter(l=>l.a===id||l.b===id);
+const other=(l,id)=>l.a===id?l.b:l.a;
+const linkBetween=(a,b)=>S.links.find(l=>(l.a===a&&l.b===b)||(l.a===b&&l.b===a));
+
+/* ================= IP ================= */
+function ipOk(s){const m=/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s||'');return !!m&&m.slice(1).every(x=>+x<=255)}
+const toInt=ip=>ip.split('.').reduce((a,x)=>((a<<8)+ +x)>>>0,0);
+const toIp=n=>[n>>>24,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
+const sameNet=(a,b,m)=>((toInt(a)&toInt(m))>>>0)===((toInt(b)&toInt(m))>>>0);
+const prefix=m=>toInt(m).toString(2).split('').filter(x=>x==='1').length;
+function hostBad(ip,mask){const h=(toInt(ip)&~toInt(mask))>>>0,full=(~toInt(mask))>>>0;return h===0||h===full}
+
+/* ================= DEVICES ================= */
+function newDev(type,id,name){
+  const d={id,type,name,x:0,y:0};
+  if(HOST.includes(type))Object.assign(d,{ip:'',mask:R24,gw:'',dns:'',dhcp:false,lease:null,lock:[]});
+  if(type==='server')d.svc={dhcp:{on:false,start:'',mask:R24,gw:'',dns:''},dns:{on:false,records:[]},http:{on:false,page:'أهلاً! هذه صفحة الموقع على السيرفر 🎉'}};
+  if(type==='router'){d.ifaces={};d.routes=[]}
+  return d;
+}
+function nextName(type){let n=0;while(S.devices.some(d=>d.name===META[type].prefix+n))n++;return META[type].prefix+n}
+function addDevice(type){
+  const r=svg.getBoundingClientRect(),d=newDev(type,uid(),nextName(type));
+  d.x=Math.round(r.width/2+(Math.random()*160-80));d.y=Math.round(r.height/2+(Math.random()*120-60));
+  S.devices.push(d);save();render();
+}
+function connect(aId,bId,silent){
+  const a=dev(aId),b=dev(bId);
+  if(linkBetween(aId,bId)){toast('الجهازين موصولين أصلاً','bad');return false}
+  for(const d of [a,b])if(linksOf(d.id).length>=META[d.type].max){toast(`${esc(d.name)} ما فيه منافذ فاضية (الحد ${META[d.type].max})`,'bad');return false}
+  const l={id:uid(),a:aId,b:bId};S.links.push(l);
+  for(const d of [a,b])if(d.type==='router'){
+    const used=Object.values(d.ifaces).map(i=>i.name);let k=0;while(used.includes('Gi0/'+k))k++;
+    d.ifaces[l.id]={name:'Gi0/'+k,ip:'',mask:R24};
+  }
+  if(!silent){save();toast(`🔌 تم توصيل ${esc(a.name)} ↔ ${esc(b.name)}`,'ok',1300)}
+  return true;
+}
+function removeLink(id){S.links=S.links.filter(l=>l.id!==id);S.devices.forEach(d=>{if(d.ifaces)delete d.ifaces[id]});save();render()}
+function removeDevice(id){
+  const d=dev(id);if(d.fixed)return toast('هذا الجهاز جزء من التدريب وما ينحذف','bad');
+  linksOf(id).forEach(l=>removeLink(l.id));S.devices=S.devices.filter(x=>x.id!==id);save();render();
+}
+
+/* ================= RENDER ================= */
+function devSvg(d){
+  const cls='dev'+(pending===d.id?' pending':'');let body,ny=44;
+  if(HOST.includes(d.type))body=`<rect class="box" x="-27" y="-25" width="54" height="50" rx="12"/><text y="9" text-anchor="middle" font-size="25">${META[d.type].icon}</text>`;
+  else if(d.type==='switch'){body=`<rect class="sw" x="-34" y="-17" width="68" height="34" rx="8"/><text y="6" text-anchor="middle" font-size="17" fill="#fff" font-weight="800">⇄ ⇄</text>`;ny=34}
+  else body=`<circle class="rt" r="25"/><text y="8" text-anchor="middle" font-size="22" fill="#fff" font-weight="800">✛</text>`;
+  const ip=HOST.includes(d.type)?`<text class="ip" y="${ny+13}">${d.ip?esc(d.ip):(d.dhcp?'DHCP…':'')}</text>`:'';
+  return `<g class="${cls}" data-dev="${d.id}" transform="translate(${d.x},${d.y})">${body}<text class="nm" y="${ny}">${esc(d.name)}</text>${ip}</g>`;
+}
+function render(){
+  let h='';
+  for(const l of S.links){const a=dev(l.a),b=dev(l.b);if(!a||!b)continue;
+    h+=`<g class="link" data-link="${l.id}"><line class="hit" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/><line class="wire" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/></g>`}
+  for(const l of S.links)for(const [r,o] of [[dev(l.a),dev(l.b)],[dev(l.b),dev(l.a)]]){
+    if(!r||!o||r.type!=='router'||!r.ifaces[l.id])continue;
+    const dx=o.x-r.x,dy=o.y-r.y,len=Math.hypot(dx,dy)||1,k=Math.min(54,len/2),x=r.x+dx/len*k,y=r.y+dy/len*k,i=r.ifaces[l.id];
+    h+=`<rect class="ifl-bg" x="${x-36}" y="${y-10}" width="72" height="${i.ip?24:13}" rx="4"/><text class="ifl" x="${x}" y="${y}">${esc(i.name)}</text>`+(i.ip?`<text class="ifl" x="${x}" y="${y+11}">${esc(i.ip)}</text>`:'');
+  }
+  S.devices.forEach(d=>h+=devSvg(d));world.innerHTML=h;
+  $('#empty').style.display=S.devices.length?'none':'flex';
+}
+
+/* ================= POINTER ================= */
+function pt(e){const r=svg.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+svg.addEventListener('pointerdown',e=>{
+  const g=e.target.closest('[data-dev]'),l=e.target.closest('[data-link]'),p=pt(e);
+  if(g){const d=dev(g.dataset.dev);drag={id:d.id,sx:p.x,sy:p.y,ox:d.x,oy:d.y,moved:false};svg.setPointerCapture(e.pointerId)}
+  else if(l&&mode==='delete')removeLink(l.dataset.link);
+  else if(pending){pending=null;render()}
+});
+svg.addEventListener('pointermove',e=>{
+  if(!drag)return;const p=pt(e),dx=p.x-drag.sx,dy=p.y-drag.sy;
+  if(!drag.moved&&Math.hypot(dx,dy)<6)return;drag.moved=true;
+  const r=svg.getBoundingClientRect(),d=dev(drag.id);
+  d.x=Math.max(30,Math.min(r.width-30,drag.ox+dx));d.y=Math.max(30,Math.min(r.height-48,drag.oy+dy));
+  if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()});
+});
+svg.addEventListener('pointerup',()=>{if(!drag)return;const {id,moved}=drag;drag=null;if(moved)save();else tapDevice(id)});
+function tapDevice(id){
+  const d=dev(id);
+  if(mode==='move')return openSheet(id);
+  if(mode==='delete')return removeDevice(id);
+  if(!pending){
+    if(mode==='ping'&&!HOST.includes(d.type))return toast('اختر كمبيوتر أو لابتوب أو سيرفر كجهاز مرسل','bad');
+    pending=id;render();toast(mode==='cable'?'اختر الجهاز الثاني':'اختر الجهاز المستقبل','',1300);return;
+  }
+  if(pending===id){pending=null;render();return}
+  const a=pending;pending=null;render();
+  if(mode==='cable'){connect(a,id);render();return}
+  if(d.type==='switch')return toast('السويتش ما له IP، اختر جهاز له عنوان','bad');
+  const ip=HOST.includes(d.type)?d.ip:(Object.values(d.ifaces).find(i=>i.ip)||{}).ip;
+  if(!ip)return toast(`${esc(d.name)} ما عنده عنوان IP`,'bad');
+  runPing(a,ip,null);
+}
+
+/* ================= SIMULATION ================= */
+function l2Reach(srcId,viaLink){
+  const res=[],seen=new Set([srcId]),q=[];
+  (viaLink?S.links.filter(l=>l.id===viaLink):linksOf(srcId)).forEach(l=>{const n=other(l,srcId);q.push({id:n,lid:l.id,path:[srcId,n]})});
+  while(q.length){const {id,lid,path}=q.shift();if(seen.has(id))continue;seen.add(id);const d=dev(id);
+    if(d.type==='switch')linksOf(id).forEach(l=>{const n=other(l,id);if(!seen.has(n))q.push({id:n,lid:l.id,path:[...path,n]})});
+    else res.push({dev:d,lid,path})}
+  return res;
+}
+const epIp=e=>e.dev.type==='router'?(e.dev.ifaces[e.lid]||{}).ip:e.dev.ip;
+const F=(hint,path=[],kind='timeout',from)=>({ok:false,kind,hint,path,from});
+function fwdHost(h,dst){
+  if(!h.ip)return F(h.dhcp?`${h.name} على DHCP وما أخذ عنوان بعد. اكتب ipconfig /renew`:`${h.name} ما عنده عنوان IP.`,[],'noip');
+  if(!linksOf(h.id).length)return F(`${h.name} مو موصول بأي كيبل.`);
+  if(dst===h.ip)return{ok:true,path:[h.id],dst:h};
+  const reach=l2Reach(h.id);
+  if(sameNet(h.ip,dst,h.mask)){const ep=reach.find(e=>epIp(e)===dst);
+    return ep?{ok:true,path:ep.path,dst:ep.dev}:F(`ما فيه جهاز بالعنوان ${dst} في شبكة ${h.name}. تأكد من الكيبلات والعناوين والـ Mask.`)}
+  if(!h.gw)return F(`${dst} في شبكة ثانية، و ${h.name} ما عنده Default Gateway.`);
+  const g=reach.find(e=>e.dev.type==='router'&&epIp(e)===h.gw);
+  if(!g)return F(`بوابة ${h.name} (${h.gw}) غير موجودة. تأكد أنه موصول بالراوتر وأن منفذ الراوتر بنفس العنوان.`);
+  return routerFwd(g.dev,dst,g.path,8);
+}
+function routerFwd(R,dst,path,ttl){
+  if(ttl<=0)return F('الرسالة دارت في حلقة بين الراوترات (Routing Loop).',path);
+  if(Object.values(R.ifaces).some(i=>i.ip===dst))return{ok:true,path,dst:R};
+  const ifs=Object.entries(R.ifaces).filter(([,i])=>i.ip);
+  const conn=ifs.find(([,i])=>sameNet(i.ip,dst,i.mask));
+  if(conn){const ep=l2Reach(R.id,conn[0]).find(e=>epIp(e)===dst);
+    return ep?{ok:true,path:path.concat(ep.path.slice(1)),dst:ep.dev}:F(`${R.name} وصل لشبكة ${dst} لكن ما لقى جهاز بهذا العنوان.`,path)}
+  const rt=R.routes.filter(r=>sameNet(r.net,dst,r.mask)).sort((a,b)=>prefix(b.mask)-prefix(a.mask))[0];
+  const from=(ifs[0]||[,{}])[1].ip;
+  if(!rt)return F(`${R.name} ما يعرف طريق للشبكة اللي فيها ${dst}. يحتاج Static Route.`,path,'unreach',from);
+  const out=ifs.find(([,i])=>sameNet(i.ip,rt.nh,i.mask));
+  if(!out)return F(`في ${R.name}: الـ Next Hop ${rt.nh} مو في أي شبكة موصولة بالراوتر.`,path,'unreach',from);
+  const nx=l2Reach(R.id,out[0]).find(e=>e.dev.type==='router'&&epIp(e)===rt.nh);
+  if(!nx)return F(`في ${R.name}: ما فيه راوتر بالعنوان ${rt.nh} (الـ Next Hop غلط؟).`,path);
+  return routerFwd(nx.dev,dst,path.concat(nx.path.slice(1)),ttl-1);
+}
+function pingCore(sId,ip){
+  const s=dev(sId),f=fwdHost(s,ip);
+  if(!f.ok)return{...f,anim:f.path};
+  if(f.dst.id===s.id)return{ok:true,anim:[s.id],dstDev:s};
+  const d=f.dst,b=d.type==='router'?routerFwd(d,s.ip,[d.id],8):fwdHost(d,s.ip);
+  if(!b.ok||b.dst.id!==s.id)return{ok:false,kind:'timeout',anim:f.path,hint:`الرسالة وصلت لـ ${d.name} لكن الرد ما رجع: ${b.hint||''}`};
+  const anim=f.path.concat(b.path.slice(1));
+  return{ok:true,anim,dstDev:d,viaRouter:f.path.some(id=>dev(id).type==='router')};
+}
+function resolveName(sId,name){
+  const s=dev(sId);name=name.toLowerCase();
+  if(!s.dns)return{ok:false,anim:[],hint:`${s.name} ما عنده عنوان DNS Server في إعداداته.`};
+  const r=pingCore(sId,s.dns);
+  if(!r.ok)return{ok:false,anim:r.anim,hint:'ما قدرنا نوصل لسيرفر الـ DNS: '+(r.hint||'')};
+  const d=r.dstDev;
+  if(d.type!=='server'||!d.svc.dns.on)return{ok:false,anim:r.anim,hint:`${d.name} ما يشغّل خدمة DNS.`};
+  const rec=d.svc.dns.records.find(x=>x.name===name);
+  if(!rec)return{ok:false,anim:r.anim,hint:`الاسم ${name} غير موجود في سجلات DNS.`};
+  return{ok:true,ip:rec.ip,anim:r.anim};
+}
+
+/* ================= ANIMATION ================= */
+function flash(id,ok){
+  const d=id&&dev(id);if(!d)return;const t=document.createElementNS(NS,'text');
+  t.setAttribute('x',d.x);t.setAttribute('y',d.y-32);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','22');
+  t.textContent=ok?'✅':'❌';pktLayer.appendChild(t);setTimeout(()=>t.remove(),900);
+}
+function animate(path,ok,icon='✉️'){
+  return new Promise(res=>{
+    if(path.length<2){flash(path[0],ok);setTimeout(res,450);return}
+    const env=document.createElementNS(NS,'text');env.setAttribute('font-size','22');env.setAttribute('text-anchor','middle');env.textContent=icon;pktLayer.appendChild(env);
+    const seg=330,t0=performance.now(),n=path.length-1;
+    (function step(t){
+      const pts=path.map(id=>dev(id)||{x:0,y:0});
+      const k=Math.max(0,Math.min((t-t0)/seg,n)),i=Math.min(Math.floor(k),n-1),f=k-i;
+      env.setAttribute('x',pts[i].x+(pts[i+1].x-pts[i].x)*f);env.setAttribute('y',pts[i].y+(pts[i+1].y-pts[i].y)*f+8);
+      if(k<n)requestAnimationFrame(step);else{env.remove();flash(path[n],ok);setTimeout(res,250)}
+    })(t0);
+  });
+}
+
+/* ================= ACTIONS ================= */
+function logEv(e){S.log.push(e);if(S.log.length>80)S.log=S.log.slice(-80);if(!e.ok)S.fails++}
+async function runPing(sId,target,out){
+  if(busy)return toast('انتظر حتى تخلص الرسالة السابقة','',1300);
+  busy=true;const s=dev(sId);let ip=target,byName=false;
+  try{
+    if(!ipOk(target)){
+      byName=true;const r=resolveName(sId,target);await animate(r.anim,r.ok,'🔎');
+      if(!r.ok){out?(out(`Ping request could not find host ${target}.`,'err'),out('💡 '+r.hint,'hint')):toast('❌ '+esc(r.hint),'bad',4500);logEv({t:'ping',ok:false,src:sId});return}
+      ip=r.ip;out&&out(`Pinging ${target} [${ip}] with 32 bytes of data:`);
+    }else out&&out(`Pinging ${ip} with 32 bytes of data:`);
+    const r=pingCore(sId,ip);await animate(r.anim,r.ok);
+    if(out){
+      for(let i=0;i<4;i++)out(r.ok?`Reply from ${ip}: bytes=32 time<1ms TTL=128`:r.kind==='unreach'?`Reply from ${r.from}: Destination host unreachable.`:'Request timed out.',r.ok?'':'err');
+      out(`\nPing statistics for ${ip}:\n    Sent = 4, Received = ${r.ok?4:0}, Lost = ${r.ok?0:4} (${r.ok?0:100}% loss)\n`);
+      if(!r.ok&&r.hint)out('💡 '+r.hint,'hint');
+    }else toast(r.ok?`✅ نجح الـ Ping من ${esc(s.name)} إلى ${esc(r.dstDev.name)}`:`❌ فشل الـ Ping<br><span style="font-weight:400">${esc(r.hint||'')}</span>`,r.ok?'ok':'bad',r.ok?2000:5000);
+    logEv({t:'ping',ok:r.ok,src:sId,dst:r.ok?r.dstDev.id:null,byName,viaRouter:!!r.viaRouter});
+  }finally{busy=false;save()}
+}
+async function runHttp(sId,url,show){
+  if(busy)return;const t=url.trim().replace(/^https?:\/\//i,'').replace(/\/.*$/,'').toLowerCase();if(!t)return;
+  busy=true;let ip=t,byName=false;
+  try{
+    show('<div class="pg-empty">⏳ جاري الاتصال…</div>');
+    if(!ipOk(t)){byName=true;const r=resolveName(sId,t);await animate(r.anim,r.ok,'🔎');
+      if(!r.ok){show(`<div class="pt">⚠️ تعذّر العثور على الموقع</div>${esc(r.hint)}`,true);logEv({t:'http',ok:false,src:sId});return}ip=r.ip}
+    const r=pingCore(sId,ip),web=r.ok&&r.dstDev.type==='server'&&r.dstDev.svc.http.on;
+    await animate(r.anim,web,'📄');
+    if(!r.ok)show(`<div class="pt">⚠️ تعذّر الوصول للسيرفر</div>${esc(r.hint||'')}`,true);
+    else if(!web)show(`<div class="pt">⚠️ لا توجد خدمة ويب</div>${esc(r.dstDev.name)} يرد على الاتصال لكن ما يشغّل خدمة HTTP.`,true);
+    else show(`<div class="pt">🌐 ${esc(t)}</div>${esc(r.dstDev.svc.http.page)}`);
+    logEv({t:'http',ok:web,src:sId,dst:web?r.dstDev.id:null,byName,viaRouter:!!r.viaRouter});
+  }finally{busy=false;save()}
+}
+async function runDhcp(id,out){
+  if(busy)return;busy=true;const h=dev(id);
+  try{
+    const say=(m,c)=>out?out(m,c):toast(esc(m),c==='err'?'bad':'ok',3500);
+    out&&out('Requesting IP via DHCP...');
+    const srv=l2Reach(id).find(e=>e.dev.type==='server'&&e.dev.svc.dhcp.on);
+    if(!srv){await animate([id],false);say('❌ ما فيه سيرفر DHCP شغال في هذه الشبكة (DHCP ما يعدّي الراوتر).','err');logEv({t:'dhcp',ok:false,dev:id});return}
+    const p=srv.dev.svc.dhcp;
+    if(!ipOk(p.start)){await animate(srv.path,false);say(`❌ إعدادات DHCP في ${srv.dev.name} ناقصة: اكتب بداية العناوين.`,'err');logEv({t:'dhcp',ok:false,dev:id});return}
+    const used=new Set(allIps(id).map(x=>x.ip));let ip=null;
+    for(let k=0;k<50;k++){const c=toIp(toInt(p.start)+k);if(!used.has(c)&&!hostBad(c,p.mask)){ip=c;break}}
+    await animate(srv.path.concat(srv.path.slice(0,-1).reverse()),!!ip,'📨');
+    if(!ip){say('❌ ما بقى عناوين فاضية في الـ DHCP Pool.','err');logEv({t:'dhcp',ok:false,dev:id});return}
+    Object.assign(h,{ip,mask:p.mask,gw:p.gw,dns:p.dns,lease:srv.dev.id});
+    say(out?`IPv4 Address: ${ip}\nSubnet Mask: ${p.mask}\nDefault Gateway: ${p.gw}\nDNS Server: ${p.dns}`:`✅ ${h.name} أخذ العنوان ${ip} من DHCP`);
+    logEv({t:'dhcp',ok:true,dev:id});render();if(openId===id)renderPane('cfg');
+  }finally{busy=false;save()}
+}
+
+/* ================= SHEET ================= */
+const TABS={host:[['cfg','الإعدادات'],['cmd','موجه الأوامر'],['web','المتصفح']],server:[['cfg','الإعدادات'],['svc','الخدمات'],['cmd','موجه الأوامر'],['web','المتصفح']],
+  router:[['cfg','المنافذ'],['rt','التوجيه']],switch:[['cfg','معلومات']]};
+const kind=d=>d.type==='server'?'server':HOST.includes(d.type)?'host':d.type;
+let curTab='cfg';
+function openSheet(id){
+  openId=id;const d=dev(id);$('#sheetTitle').textContent=`${d.name} — ${META[d.type].label}`;
+  const tabs=TABS[kind(d)];
+  $('#tabs').innerHTML=tabs.map(([k,t])=>`<button data-tab="${k}">${t}</button>`).join('');
+  $('#tabs').style.display=tabs.length>1?'flex':'none';
+  $('#panes').innerHTML=tabs.map(([k])=>`<div id="p_${k}"></div>`).join('');
+  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+  tabs.forEach(([k])=>renderPane(k));showTab('cfg');$('#sheet').hidden=false;
+}
+function showTab(t){curTab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('#panes>div').forEach(p=>p.hidden=p.id!=='p_'+t);if(t==='cmd'){const e=$('#term');e.scrollTop=e.scrollHeight}}
+$('#sheetClose').onclick=()=>{$('#sheet').hidden=true;openId=null};
+const maskSel=(id,v,dis)=>`<select id="${id}" dir="ltr" ${dis?'disabled':''}>${MASKS.map(m=>`<option ${m===v?'selected':''}>${m}</option>`).join('')}</select>`;
+const inp=(id,v,ph,dis)=>`<input id="${id}" dir="ltr" inputmode="decimal" autocomplete="off" placeholder="${ph}" value="${esc(v)}" ${dis?'disabled':''}>`;
+
+function renderPane(t){
+  const d=dev(openId),el=$('#p_'+t);if(!d||!el)return;
+  if(t==='cfg'&&HOST.includes(d.type)){
+    const lk=f=>d.lock.includes(f),dis=f=>d.dhcp||lk(f);
+    el.innerHTML=`<label class="f">اسم الجهاز<input id="fName" value="${esc(d.name)}"></label>
+      ${d.type!=='server'?`<div class="seg"><button data-m="0" class="${d.dhcp?'':'on'}">يدوي (Static)</button><button data-m="1" class="${d.dhcp?'on':''}">تلقائي (DHCP)</button></div>`:''}
+      ${d.dhcp?`<button class="btn2" id="fRenew">🔄 طلب عنوان من DHCP</button>`:''}
+      <label class="f">عنوان IP ${lk('ip')?'🔒':''}${inp('fIp',d.ip,'192.168.1.10',dis('ip'))}</label>
+      <label class="f">Subnet Mask${maskSel('fMask',d.mask,dis('mask'))}</label>
+      <label class="f">Default Gateway <small>(عنوان الراوتر، فاضي لو ما فيه راوتر)</small>${inp('fGw',d.gw,'192.168.1.1',dis('gw'))}</label>
+      <label class="f">DNS Server <small>(اختياري)</small>${inp('fDns',d.dns,'192.168.1.100',dis('dns'))}</label>
+      <button class="save" id="fSave">حفظ</button>`;
+    el.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
+      const on=b.dataset.m==='1';if(on===d.dhcp)return;d.dhcp=on;
+      d.lease=null;if(on){d.ip='';d.gw='';d.dns=''}save();render();renderPane('cfg');if(on)runDhcp(d.id,null);
+    });
+    if($('#fRenew'))$('#fRenew').onclick=()=>runDhcp(d.id,null);
+    $('#fSave').onclick=saveHost;
+  }else if(t==='cfg'&&d.type==='router'){
+    const ls=linksOf(d.id);
+    el.innerHTML=`<label class="f">اسم الجهاز<input id="fName" value="${esc(d.name)}"></label>`+
+      (ls.length?ls.map(l=>{const i=d.ifaces[l.id],o=dev(other(l,d.id));return `<div class="box2"><h4><span dir="ltr">${esc(i.name)}</span> ← ${esc(o.name)}</h4><div class="row2">
+       <label class="f">IP<input class="rIp" data-lid="${l.id}" dir="ltr" inputmode="decimal" placeholder="192.168.1.1" value="${esc(i.ip)}"></label>
+       <label class="f">Mask${maskSel('m_'+l.id,i.mask)}</label></div></div>`}).join('')
+      :'<p class="note">الراوتر مو موصول بشي. وصّله بالكيبل 🔌 وبعدها ارجع تكتب IP لكل منفذ.</p>')+
+      `<button class="save" id="fSave">حفظ</button>`;
+    $('#fSave').onclick=saveRouter;
+  }else if(t==='cfg'){
+    el.innerHTML=`<label class="f">اسم الجهاز<input id="fName" value="${esc(d.name)}"></label>
+      <p class="note">السويتش يربط الأجهزة اللي في نفس الشبكة، وما يحتاج عنوان IP. فيه ${META.switch.max} منافذ، المستخدم منها ${linksOf(d.id).length}.</p>
+      <button class="save" id="fSave">حفظ</button>`;
+    $('#fSave').onclick=()=>{d.name=$('#fName').value.trim()||d.name;save();render();toast('✔️ تم الحفظ','ok',1100)};
+  }else if(t==='rt'){
+    const conn=Object.values(d.ifaces).filter(i=>i.ip);
+    el.innerHTML=`<p class="note">جدول التوجيه (Routing Table): <b>C</b> = شبكة موصولة مباشرة، <b>S</b> = Static Route أضفته أنت.</p>
+      <table class="tbl code">${conn.map(i=>`<tr><td>C</td><td>${toIp((toInt(i.ip)&toInt(i.mask))>>>0)}/${prefix(i.mask)}</td><td>${esc(i.name)}</td><td></td></tr>`).join('')}
+      ${d.routes.map((r,k)=>`<tr><td>S</td><td>${esc(r.net)}/${prefix(r.mask)}</td><td>via ${esc(r.nh)}</td><td><button class="del" data-k="${k}">✕</button></td></tr>`).join('')}
+      ${!conn.length&&!d.routes.length?'<tr><td>—</td><td>الجدول فاضي</td></tr>':''}</table>
+      <div class="box2"><h4>➕ إضافة Static Route</h4>
+      <label class="f">عنوان الشبكة البعيدة${inp('rNet','','192.168.2.0')}</label>
+      <div class="row2"><label class="f">Mask${maskSel('rMask',R24)}</label><label class="f">Next Hop${inp('rNh','','10.0.0.2')}</label></div>
+      <button class="save" id="rAdd">إضافة</button></div>`;
+    el.querySelectorAll('.del').forEach(b=>b.onclick=()=>{d.routes.splice(+b.dataset.k,1);save();renderPane('rt')});
+    $('#rAdd').onclick=()=>{
+      const net=$('#rNet').value.trim(),mask=$('#rMask').value,nh=$('#rNh').value.trim();
+      if(!ipOk(net))return toast('عنوان الشبكة غير صحيح','bad');
+      if(((toInt(net)&toInt(mask))>>>0)!==toInt(net))return toast(`عنوان الشبكة لازم يكون ${toIp((toInt(net)&toInt(mask))>>>0)} مع هذا الـ Mask`,'bad');
+      if(!ipOk(nh))return toast('الـ Next Hop غير صحيح','bad');
+      d.routes=d.routes.filter(r=>!(r.net===net&&r.mask===mask));d.routes.push({net,mask,nh});save();renderPane('rt');toast('✔️ تمت إضافة الـ Route','ok',1200);
+    };
+  }else if(t==='svc'){
+    const s=d.svc;
+    el.innerHTML=`<div class="box2"><h4>📨 DHCP<label><input type="checkbox" id="sDhcp" ${s.dhcp.on?'checked':''}> تشغيل</label></h4>
+      <label class="f">بداية العناوين (Start IP)${inp('sStart',s.dhcp.start,'192.168.1.10')}</label>
+      <div class="row2"><label class="f">Mask${maskSel('sMask',s.dhcp.mask)}</label><label class="f">Gateway${inp('sGw',s.dhcp.gw,'192.168.1.1')}</label></div>
+      <label class="f">DNS Server${inp('sDns',s.dhcp.dns,'192.168.1.100')}</label></div>
+      <div class="box2"><h4>📒 DNS<label><input type="checkbox" id="sDnsOn" ${s.dns.on?'checked':''}> تشغيل</label></h4>
+      <table class="tbl code">${s.dns.records.map((r,k)=>`<tr><td>${esc(r.name)}</td><td>${esc(r.ip)}</td><td><button class="del" data-k="${k}">✕</button></td></tr>`).join('')||'<tr><td>لا توجد سجلات</td></tr>'}</table>
+      <div class="row3"><label class="f">الاسم<input id="sRn" dir="ltr" autocapitalize="off" placeholder="www.mysite.com"></label><label class="f">IP${inp('sRip','','192.168.1.100')}</label><button class="add" id="sRadd">إضافة</button></div></div>
+      <div class="box2"><h4>🌐 HTTP (موقع)<label><input type="checkbox" id="sHttp" ${s.http.on?'checked':''}> تشغيل</label></h4>
+      <label class="f">محتوى الصفحة<textarea id="sPage" rows="2">${esc(s.http.page)}</textarea></label></div>
+      <button class="save" id="sSave">حفظ الخدمات</button>`;
+    el.querySelectorAll('.del').forEach(b=>b.onclick=()=>{s.dns.records.splice(+b.dataset.k,1);save();renderPane('svc')});
+    $('#sRadd').onclick=()=>{const n=$('#sRn').value.trim().toLowerCase(),ip=$('#sRip').value.trim();
+      if(!n||/\s/.test(n))return toast('اكتب اسم صحيح مثل www.mysite.com','bad');if(!ipOk(ip))return toast('العنوان غير صحيح','bad');
+      s.dns.records=s.dns.records.filter(r=>r.name!==n);s.dns.records.push({name:n,ip});s.dns.on=true;save();renderPane('svc');toast('✔️ تمت إضافة السجل','ok',1200)};
+    $('#sSave').onclick=()=>{
+      const st=$('#sStart').value.trim(),gw=$('#sGw').value.trim(),dn=$('#sDns').value.trim(),on=$('#sDhcp').checked;
+      if(on&&!ipOk(st))return toast('اكتب بداية عناوين صحيحة لـ DHCP','bad');
+      if(gw&&!ipOk(gw))return toast('الـ Gateway غير صحيح','bad');if(dn&&!ipOk(dn))return toast('الـ DNS غير صحيح','bad');
+      Object.assign(s.dhcp,{on,start:st,mask:$('#sMask').value,gw,dns:dn});s.dns.on=$('#sDnsOn').checked;
+      s.http.on=$('#sHttp').checked;s.http.page=$('#sPage').value.trim()||s.http.page;save();toast('✔️ تم حفظ الخدمات','ok',1200);
+    };
+  }else if(t==='cmd'){
+    el.innerHTML=`<div id="term"></div><div class="term-in"><span>C:\\&gt;</span><input id="termIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="help"></div>`;
+    renderTerm();$('#termIn').addEventListener('keydown',termKey);
+  }else if(t==='web'){
+    const w=webState[d.id]||{url:'',html:'<div class="pg-empty">اكتب عنوان موقع أو IP واضغط انتقال</div>',err:false};
+    el.innerHTML=`<div class="url"><input id="wUrl" autocapitalize="off" autocomplete="off" placeholder="www.mysite.com" value="${esc(w.url)}"><button id="wGo">انتقال</button></div><div class="page ${w.err?'err':''}" id="wPage">${w.html}</div>`;
+    const go=()=>{const url=$('#wUrl').value,id=d.id;webState[id]={url,html:'',err:false};
+      runHttp(id,url,(html,err)=>{webState[id]={url,html,err:!!err};if(openId===id&&$('#wPage')){$('#wPage').innerHTML=html;$('#wPage').classList.toggle('err',!!err)}})};
+    $('#wGo').onclick=go;$('#wUrl').onkeydown=e=>{if(e.key==='Enter')go()};
+  }
+}
+function allIps(except){
+  const L2=[];S.devices.forEach(d=>{if(d.id===except)return;
+    if(HOST.includes(d.type)&&d.ip)L2.push({ip:d.ip,name:d.name});
+    if(d.type==='router')Object.values(d.ifaces).forEach(i=>i.ip&&L2.push({ip:i.ip,name:d.name+' '+i.name}))});
+  return L2;
+}
+function saveHost(){
+  const d=dev(openId),name=$('#fName').value.trim()||d.name;
+  if(d.dhcp){d.name=name;save();render();return toast('✔️ تم الحفظ','ok',1100)}
+  const ip=$('#fIp').value.trim(),mask=$('#fMask').value,gw=$('#fGw').value.trim(),dns=$('#fDns').value.trim();
+  if(ip&&!ipOk(ip))return toast('عنوان IP غير صحيح. مثال: 192.168.1.10','bad');
+  if(ip&&hostBad(ip,mask))return toast('هذا العنوان محجوز (عنوان الشبكة أو البث). غيّر آخر رقم.','bad');
+  if(gw&&!ipOk(gw))return toast('الـ Gateway غير صحيح','bad');
+  if(dns&&!ipOk(dns))return toast('الـ DNS غير صحيح','bad');
+  const dup=ip&&allIps(d.id).find(t=>t.ip===ip);if(dup)return toast(`العنوان ${ip} مستخدم في ${esc(dup.name)}`,'bad');
+  if(ip&&gw&&!sameNet(ip,gw,mask))return toast('الـ Gateway لازم يكون من نفس شبكة الجهاز','bad');
+  Object.assign(d,{name,ip,mask,gw,dns});save();render();toast('✔️ تم الحفظ','ok',1100);$('#sheetTitle').textContent=`${d.name} — ${META[d.type].label}`;
+}
+function saveRouter(){
+  const d=dev(openId),taken=allIps(d.id);
+  const vals=[...document.querySelectorAll('.rIp')].map(el=>({lid:el.dataset.lid,ip:el.value.trim(),mask:$('#m_'+el.dataset.lid).value}));
+  for(const v of vals){
+    if(v.ip&&!ipOk(v.ip))return toast(`عنوان غير صحيح: ${esc(v.ip)}`,'bad');
+    if(v.ip&&hostBad(v.ip,v.mask))return toast(`${esc(v.ip)} عنوان محجوز (شبكة أو بث)`,'bad');
+    const dup=v.ip&&taken.find(t=>t.ip===v.ip);if(dup)return toast(`العنوان ${v.ip} مستخدم في ${esc(dup.name)}`,'bad');
+  }
+  const f=vals.filter(v=>v.ip);
+  for(let i=0;i<f.length;i++)for(let j=i+1;j<f.length;j++)if(sameNet(f[i].ip,f[j].ip,f[i].mask)||sameNet(f[i].ip,f[j].ip,f[j].mask))return toast('كل منفذ في الراوتر لازم يكون في شبكة مختلفة','bad');
+  vals.forEach(v=>Object.assign(d.ifaces[v.lid],{ip:v.ip,mask:v.mask}));d.name=$('#fName').value.trim()||d.name;
+  save();render();renderPane('rt');toast('✔️ تم الحفظ','ok',1100);
+}
+
+/* ================= TERMINAL ================= */
+function termOut(id,line,cls=''){(termHist[id]=termHist[id]||[]).push({line,cls});if(openId===id)renderTerm()}
+function renderTerm(){
+  const el=$('#term');if(!el||!openId)return;
+  const H=termHist[openId]=termHist[openId]||[{line:'Network Academy Command Line\nاكتب help لعرض الأوامر\n',cls:''}];
+  el.innerHTML=H.map(h=>`<div class="${h.cls}">${esc(h.line)}</div>`).join('');el.scrollTop=el.scrollHeight;
+}
+function termKey(e){
+  if(e.key!=='Enter')return;const id=openId,d=dev(id),cmd=e.target.value.trim();e.target.value='';if(!cmd)return;
+  const out=(l,c)=>termOut(id,l,c);out('C:\\>'+cmd);const [c,arg]=cmd.split(/\s+/),cl=c.toLowerCase();
+  if(cl==='help')out('ipconfig            عرض إعدادات الشبكة\nipconfig /renew     طلب عنوان من DHCP\nping <IP أو اسم>    اختبار الاتصال\nnslookup <اسم>      البحث عن عنوان اسم\ncls                 مسح الشاشة');
+  else if(cl==='ipconfig'&&arg&&arg.toLowerCase()==='/renew'){if(!d.dhcp)out('الجهاز على Static. غيّره لـ DHCP من الإعدادات أول.','err');else runDhcp(id,out)}
+  else if(cl==='ipconfig')out(`\nEthernet adapter:\n   DHCP Enabled. . . . : ${d.dhcp?'Yes':'No'}\n   IPv4 Address. . . . : ${d.ip||'(none)'}\n   Subnet Mask . . . . : ${d.mask}\n   Default Gateway . . : ${d.gw}\n   DNS Server. . . . . : ${d.dns}\n`);
+  else if(cl==='ping'){if(!arg)out('اكتب عنوان أو اسم، مثال: ping 192.168.1.2','err');else runPing(id,arg,out)}
+  else if(cl==='nslookup'){if(!arg)return out('مثال: nslookup www.mysite.com','err');
+    if(busy)return;const r=resolveName(id,arg);busy=true;animate(r.anim,r.ok,'🔎').then(()=>{busy=false;
+      if(r.ok)out(`Server:  ${d.dns}\nName:    ${arg.toLowerCase()}\nAddress: ${r.ip}\n`);else{out(`*** Can't find ${arg}`,'err');out('💡 '+r.hint,'hint')}})}
+  else if(cl==='cls'||cl==='clear'){termHist[id]=[];renderTerm()}
+  else out(`'${c}' أمر غير معروف. اكتب help`,'err');
+}
+
+/* ================= CHECK ================= */
+function evaluate(){return L.reqs.map(([t,c])=>{let r;try{r=c()}catch(e){r=no('الشبكة ناقصة، كمّلها وجرّب مرة ثانية.')}return{t,ok:r.ok,why:r.why}})}
+function renderMission(){
+  const el=$('#mission');
+  if(!L.reqs.length){el.innerHTML='<div class="gh"><span>🧪 وضع حر: ابنِ أي شبكة وجرّبها</span></div>';return}
+  const last=S.last||[];
+  el.innerHTML=`<div class="gh" id="mToggle"><span>📋 المهمة${S.checks?` · آخر تحقق: ${last.filter(x=>x).length}/${L.reqs.length}`:''}</span>${missionOpen?'▴':'▾'}</div>`+
+    (missionOpen?`<p>${esc(L.task)}</p><ul>${L.reqs.map(([t],i)=>{const s=last[i];return `<li class="${s===true?'ok':s===false?'no':''}">${s===true?'✅':s===false?'❌':'⬜'} ${esc(t)}</li>`}).join('')}</ul>`:'');
+  $('#mToggle').onclick=()=>{missionOpen=!missionOpen;renderMission()};
+}
+function runCheck(){
+  if(busy)return toast('انتظر حتى تخلص الرسالة الحالية','',1300);
+  const res=evaluate(),pass=res.every(r=>r.ok);
+  S.checks=(S.checks||0)+1;S.last=res.map(r=>r.ok);renderMission();
+  if(pass){
+    const stars=Math.max(1,3-(S.hint?1:0)-(S.checks>2?1:0));
+    P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);S.won=true;save();
+    return showWin(stars,res);
+  }
+  save();
+  const n=res.filter(r=>r.ok).length;
+  modal(`<h3>❌ ما تعدّيت المرحلة بعد</h3><p style="color:var(--muted);margin:2px 0">حققت ${n} من ${res.length} — صلّح اللي باللون الأحمر وتحقق مرة ثانية.</p>
+    <ul class="res">${res.map(r=>`<li class="${r.ok?'ok':'no'}">${r.ok?'✅':'❌'} ${esc(r.t)}${r.ok?'':`<small>${esc(r.why||'')}</small>`}</li>`).join('')}</ul>
+    <div class="mbtns"><button class="pri" id="mOk">رجوع للتعديل 🔧</button></div>`);
+  $('#mOk').onclick=closeModal;
+}
+
+/* ================= UI ================= */
+function toast(msg,k='',ms=2600){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast '+k;t.innerHTML=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),ms)}
+function modal(html){$('#mbox').innerHTML=html;$('#modal').hidden=false;$('#mbox').scrollTop=0}
+function closeModal(){$('#modal').hidden=true}
+function setMode(m){mode=m;pending=null;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));$('#statusTxt').innerHTML=HINTS[m];render()}
+function buildToolbar(){
+  $('#toolbar').innerHTML=ALL.map(k=>`<button class="tb" data-add="${k}"><span class="i">${META[k].icon}</span>${META[k].label}</button>`).join('')+'<span class="sep"></span>'+
+    [['move','✋','تحريك'],['cable','🔌','كيبل'],['ping','✉️','Ping'],['delete','❌','حذف']].map(([m,i,l])=>`<button class="tb" data-mode="${m}"><span class="i">${i}</span>${l}</button>`).join('');
+  document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addDevice(b.dataset.add));
+  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+}
+const lvIndex=()=>LEVELS.indexOf(L);
+function showLesson(){
+  if(!L.lesson)return;
+  modal(`<span class="tag">المرحلة ${lvIndex()+1} · ${esc(L.tag)}</span><h3>📘 ${esc(L.title)}</h3>${L.lesson}
+    <div class="task">🎯 المهمة: ${esc(L.task)}<ol class="reqs">${L.reqs.map(([t])=>`<li>${esc(t)}</li>`).join('')}</ol></div>
+    <p style="color:var(--muted);font-size:13.5px">ابنِ الشبكة كاملة، وإذا خلصت اضغط <b>✔ تحقق</b> تحت.</p>
+    <div class="mbtns"><button class="pri" id="mGo">ابدأ البناء 🚀</button></div>`);
+  $('#mGo').onclick=closeModal;
+}
+function showWin(stars,res){
+  const i=lvIndex(),last=i===LEVELS.length-1;
+  modal(`<h3 style="text-align:center">${last?'🏆 مبروك! ختمت الأكاديمية':'🎉 تعدّيت المرحلة!'}</h3><div class="big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+   <p style="text-align:center;color:var(--muted);margin:0">${stars===3?'أداء مثالي!':(S.hint?'استخدمت التلميح (−⭐) ':'')+(S.checks>2?'· تحققت أكثر من مرتين (−⭐)':'')}</p>
+   <ul class="res">${res.map(r=>`<li class="ok">✅ ${esc(r.t)}</li>`).join('')}</ul>
+   <div class="mbtns">${last?'':'<button class="pri" id="mNext">المرحلة التالية ←</button>'}<button id="mStay">أكمل هنا</button><button id="mHome">القائمة</button></div>`);
+  if($('#mNext'))$('#mNext').onclick=()=>{closeModal();openLevel(LEVELS[i+1],false)};
+  $('#mStay').onclick=closeModal;
+  $('#mHome').onclick=()=>{closeModal();goHome()};
+}
+function openLevel(lv,fresh){
+  L=lv;$('#home').hidden=true;$('#game').hidden=false;$('#sheet').hidden=true;openId=null;
+  Object.keys(termHist).forEach(k=>delete termHist[k]);Object.keys(webState).forEach(k=>delete webState[k]);
+  $('#gTitle').textContent=(L.id==='lab'?'🧪 ':(lvIndex()+1)+'. ')+L.title;
+  $('#gLesson').hidden=$('#gHint').hidden=$('#checkBtn').hidden=!L.lesson;
+  buildToolbar();
+  const saved=!fresh&&P.cur&&P.cur.lvl===L.id;
+  S=saved?P.cur.S:{devices:[],links:[],log:[],hint:false,fails:0,checks:0,last:null,won:false};
+  missionOpen=true;setMode('move');renderMission();save();
+  if(!saved)showLesson();
+}
+function goHome(){
+  L=null;$('#game').hidden=true;$('#sheet').hidden=true;$('#home').hidden=false;openId=null;
+  const tot=LEVELS.reduce((a,l)=>a+(P.stars[l.id]||0),0);
+  $('#total').textContent=`⭐ ${tot} / ${LEVELS.length*3}`;
+  $('#grid').innerHTML=LEVELS.map((l,i)=>{const st=P.stars[l.id]||0,lock=i>0&&!P.stars[LEVELS[i-1].id];
+    return `<button class="card ${lock?'locked':''} ${st?'done':''}" data-i="${i}"><span class="n">${lock?'🔒':i+1}</span><b>${esc(l.title)}</b><small>${esc(l.tag)}</small><span class="st">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</span></button>`}).join('')+
+    `<button class="card lab" data-i="lab"><span class="n">🧪</span><b>${LAB.title}</b><small>${LAB.tag}</small></button>`;
+  document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{
+    if(c.classList.contains('locked'))return toast('تعدّى المرحلة اللي قبلها أول 🔒','',1600);
+    openLevel(c.dataset.i==='lab'?LAB:LEVELS[+c.dataset.i],false);
+  });
+}
+$('#gBack').onclick=goHome;
+$('#gLesson').onclick=showLesson;
+$('#checkBtn').onclick=runCheck;
+$('#gHint').onclick=()=>{
+  modal(`<h3>💡 تلميح</h3>${S.hint?'':'<p style="color:var(--muted);font-size:13.5px">(فتح التلميح ينقص نجمة من تقييم المرحلة)</p>'}<p>${esc(L.hint)}</p><div class="mbtns"><button class="pri" id="mOk">فهمت</button></div>`);
+  S.hint=true;save();$('#mOk').onclick=closeModal;
+};
+$('#gReset').onclick=()=>{if(confirm('تبغى تمسح الشبكة وتبدأ المرحلة من جديد؟'))openLevel(L,true)};
+$('#resetAll').onclick=()=>{if(confirm('متأكد؟ بينمسح كل تقدّمك.')){P={stars:{},cur:null};storeP();goHome()}};
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
+goHome();
+</script>
+</body>
+</html>
