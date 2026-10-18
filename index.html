@@ -148,6 +148,7 @@ main{flex:1;position:relative;min-height:0}
 .res li small{display:block;font-weight:400;color:var(--muted);font-size:13.5px}
 .reqs{margin:6px 0 0;padding-inline-start:20px}
 .wire.down{stroke:#9aa8b8;stroke-dasharray:6 4}
+.wire.cross{stroke-dasharray:2 6;stroke-linecap:round;stroke-width:3.5}
 .mbox pre,.pre{direction:ltr;text-align:left;background:var(--term);color:var(--term-ink);padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.6;overflow:auto;white-space:pre;font-family:ui-monospace,Consolas,monospace;margin:8px 0}
 .lockn{background:var(--accent-soft);border-radius:12px;padding:14px;line-height:1.8;font-size:14px}
 .ptbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
@@ -159,6 +160,39 @@ main{flex:1;position:relative;min-height:0}
 .chk input{width:18px;height:18px}
 .cli-tag{display:inline-block;background:#1f2937;color:#c8f7c5;border-radius:8px;padding:1px 8px;font-size:12px;margin-inline-start:6px;font-weight:700}
 .card .cli-tag{position:absolute;top:12px;left:10px;margin:0}
+.htabs{display:flex;gap:8px;justify-content:center;margin:0 auto 14px;max-width:900px;flex-wrap:wrap}
+.htabs button{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:9px 16px;font-weight:800;font-size:14.5px}
+.htabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.lvl{display:inline-block;font-size:11.5px;font-weight:800;border-radius:8px;padding:1px 8px;width:max-content}
+.lv-سهل{background:#dff5e8;color:#157a43}.lv-متوسط{background:#fff1d6;color:#9a6200}.lv-متقدم{background:#fde3e3;color:#b42828}.lv-احترافي{background:#ece2ff;color:#6a35c9}
+@media (prefers-color-scheme:dark){.lv-سهل{background:#123a26;color:#7fe0a8}.lv-متوسط{background:#3a2c0e;color:#ffc96b}.lv-متقدم{background:#3d1717;color:#ff9b9b}.lv-احترافي{background:#2b1d47;color:#c7a8ff}}
+.card .cpct{font-size:12px;font-weight:800;color:var(--accent)}
+.mini{border:1px solid var(--line);background:var(--accent-soft);border-radius:9px;padding:4px 10px;font-weight:800;font-size:12.5px}
+.prog{height:7px;background:var(--accent-soft);border-radius:8px;overflow:hidden;margin:6px 0 3px}
+.prog i{display:block;height:100%;background:var(--ok);transition:width .4s}
+.prog.big{height:12px}
+.pct{text-align:center;font-size:18px;margin-top:8px;direction:ltr}
+.pct b{color:var(--ok);font-size:24px}
+details.grp{border:1px solid var(--line);border-radius:12px;margin-bottom:6px;padding:0 10px}
+details.grp summary{cursor:pointer;font-weight:800;padding:9px 0;display:flex;gap:6px}
+details.grp summary span{margin-inline-start:auto;color:var(--muted);font-size:13px}
+details.grp .res{margin:0 0 8px}
+.dh{margin:14px 0 6px;font-size:16px}
+.atbl{width:100%;border-collapse:collapse;font-size:12px;direction:rtl}
+.atbl th{background:var(--accent);color:#fff;padding:6px;font-weight:700}
+.atbl td{border:1px solid var(--line);padding:5px 4px;text-align:center;font-family:ui-monospace,Consolas,monospace;direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-size:11.5px}
+.atbl th{font-size:12px}
+.atbl td:first-child{font-family:inherit}
+.atbl td.q{background:#fff3c4;color:#8a5a00;font-weight:800}
+@media (prefers-color-scheme:dark){.atbl td.q{background:#3a3110;color:#ffd479}}
+.topo{width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:12px;display:block}
+.topo .tl{stroke:var(--ink);stroke-width:2}.topo .tc{stroke-dasharray:3 5;stroke-linecap:round}
+.topo .tlb{fill:var(--panel);stroke:var(--line)}
+.topo .tpt{font-size:11.5px;font-family:ui-monospace,Consolas,monospace;fill:var(--ink);text-anchor:middle;font-weight:700}
+.topo .trt{fill:var(--router)}.topo .tsw{fill:var(--switch)}.topo .thost{fill:var(--panel);stroke:var(--line);stroke-width:2}
+.topo .tic{text-anchor:middle;font-size:21px}
+.topo .tnm{font-size:15px;font-weight:800;fill:var(--ink);text-anchor:middle;direction:ltr}
+#mission small.note{font-size:12.5px}
 </style>
 </head>
 <body>
@@ -167,9 +201,10 @@ main{flex:1;position:relative;min-height:0}
   <div class="home-head">
     <div class="logo">🌐</div>
     <h1>أكاديمية الشبكات</h1>
-    <p>كل مرحلة مهمة: ابنِ الشبكة كاملة من الصفر، ثم اضغط «تحقق» وشوف إذا تعدّيتها</p>
+    <p id="hsub"></p>
     <div class="total" id="total"></div>
   </div>
+  <div class="htabs" id="htabs"></div>
   <div class="grid" id="grid"></div>
   <button class="link-btn" id="resetAll">إعادة ضبط التقدّم</button>
 </section>
@@ -223,10 +258,11 @@ const HINTS={
 
 /* ================= STATE ================= */
 let P=loadP()||{stars:{},cur:null};
+let cableType='auto';
 let L=null,S=null,mode='move',pending=null,drag=null,busy=false,openId=null,raf=0,missionOpen=true;
-const termHist={},webState={},cliSt={};
-function loadP(){try{return JSON.parse(localStorage.getItem('netacademy-v3'))}catch(e){return null}}
-function storeP(){try{localStorage.setItem('netacademy-v3',JSON.stringify(P))}catch(e){}}
+const termHist={},webState={},cliSt={},pcSess={};
+function loadP(){try{return JSON.parse(localStorage.getItem('netacademy-v4'))}catch(e){return null}}
+function storeP(){try{localStorage.setItem('netacademy-v4',JSON.stringify(P))}catch(e){}}
 function save(){if(L){P.cur={lvl:L.id,S};storeP()}}
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -250,8 +286,9 @@ function newDev(type,id,name){
   const d={id,type,name,x:0,y:0};
   if(HOST.includes(type))Object.assign(d,{ip:'',mask:R24,gw:'',dns:'',dhcp:false,lease:null});
   if(type==='server')d.svc={dhcp:{on:false,start:'',mask:R24,gw:'',dns:''},dns:{on:false,records:[]},http:{on:false,page:'أهلاً! هذه صفحة الموقع على السيرفر 🎉'}};
-  if(type==='router')Object.assign(d,{ports:[0,1,2,3].map(i=>({name:'GigabitEthernet0/'+i,ip:'',mask:'',shut:true,desc:'',helper:'',subs:[]})),routes:[],pools:[],excl:[],secret:'',banner:'',saved:null});
-  if(type==='switch')Object.assign(d,{ports:Array.from({length:8},(_,i)=>({name:'FastEthernet0/'+(i+1),mode:'access',vlan:1,shut:false,desc:''})),vlans:{1:'default'},svi:{},gw:'',secret:'',banner:'',saved:null});
+  const sec=()=>({secret:'',banner:'',saved:null,lines:{con:{pw:'',login:false},vty:{pw:'',login:true,local:false,transport:'all'}},users:{},domain:'',rsa:0,sshv:1,spe:false,lookup:true});
+  if(type==='router')Object.assign(d,{ports:[0,1,2,3].map(i=>({name:'GigabitEthernet0/'+i,ip:'',mask:'',shut:true,desc:'',helper:'',subs:[]})),routes:[],pools:[],excl:[]},sec());
+  if(type==='switch')Object.assign(d,{ports:Array.from({length:26},(_,i)=>({name:i<24?'FastEthernet0/'+(i+1):'GigabitEthernet0/'+(i-23),mode:'access',vlan:1,shut:false,desc:''})),vlans:{1:'default'},svi:{},gw:''},sec());
   return d;
 }
 const nPorts=d=>HOST.includes(d.type)?1:d.ports.length;
@@ -261,7 +298,11 @@ function freePort(d){for(let i=0;i<nPorts(d);i++)if(!portLink(d,i))return i;retu
 const portName=(d,i)=>HOST.includes(d.type)?'FastEthernet0':d.ports[i].name;
 const short=n=>String(n).replace('GigabitEthernet','Gi').replace('FastEthernet','Fa');
 const portUp=(d,i)=>HOST.includes(d.type)?true:!d.ports[i].shut;
-const linkUp=l=>portUp(dev(l.a),l.pa)&&portUp(dev(l.b),l.pb);
+const devClass=d=>d.type==='switch'?'S':'D';
+const needType=(a,b)=>devClass(a)===devClass(b)?'cross':'straight';
+const cableName=t=>t==='cross'?'Crossover':'Straight-Through';
+const cableOk=l=>!l.type||l.type===needType(dev(l.a),dev(l.b));
+const linkUp=l=>portUp(dev(l.a),l.pa)&&portUp(dev(l.b),l.pb)&&cableOk(l);
 function nextName(type){let n=0;while(S.devices.some(d=>d.name===META[type].prefix+n))n++;return META[type].prefix+n}
 function addDevice(type){
   const r=svg.getBoundingClientRect(),d=newDev(type,uid(),nextName(type));
@@ -271,17 +312,32 @@ function addDevice(type){
   d.x=Math.round(f.x);d.y=Math.round(f.y);
   S.devices.push(d);save();render();return d;
 }
-function connect(aId,bId,silent){
+function connect(aId,bId,silent,o={}){
   const a=dev(aId),b=dev(bId);
   if(linkBetween(aId,bId)){toast('الجهازين موصولين أصلاً','bad');return null}
-  const pa=freePort(a),pb=freePort(b);
-  for(const [d,p] of [[a,pa],[b,pb]])if(p<0){toast(`${esc(d.name)} ما فيه منافذ فاضية`,'bad');return null}
-  const l={id:uid(),a:aId,b:bId,pa,pb};S.links.push(l);
-  if(!silent){save();toast(`🔌 ${esc(a.name)} (${short(portName(a,pa))}) ↔ ${esc(b.name)} (${short(portName(b,pb))})`,'ok',1800)}
+  const pa=o.pa??freePort(a),pb=o.pb??freePort(b);
+  for(const [d,p] of [[a,pa],[b,pb]]){if(p<0){toast(`${esc(d.name)} ما فيه منافذ فاضية`,'bad');return null}if(portLink(d,p)){toast(`المنفذ ${short(portName(d,p))} في ${esc(d.name)} مستخدم`,'bad');return null}}
+  const type=o.type&&o.type!=='auto'?o.type:needType(a,b);
+  const l={id:uid(),a:aId,b:bId,pa,pb,type};S.links.push(l);
+  if(!silent){save();toast(cableOk(l)?`🔌 ${esc(a.name)} (${short(portName(a,pa))}) ↔ ${esc(b.name)} (${short(portName(b,pb))}) · ${cableName(type)}`:`⚠️ تم التوصيل بكيبل ${cableName(type)} — النوع غلط! لازم ${cableName(needType(a,b))}`,cableOk(l)?'ok':'bad',2600)}
   return l;
 }
+function cablePick(aId,bId){
+  const A=dev(aId),B=dev(bId);
+  for(const d of [A,B])if(freePort(d)<0)return toast(`${esc(d.name)} ما فيه منافذ فاضية`,'bad');
+  const sel=(d,id)=>HOST.includes(d.type)?`<p class="note" style="margin:4px 0 10px">${esc(d.name)}: <b dir="ltr">FastEthernet0</b></p>`:
+    `<label class="f">منفذ ${esc(d.name)}<select id="${id}" dir="ltr">${Array.from({length:nPorts(d)},(_,i)=>i).filter(i=>!portLink(d,i)).map(i=>`<option value="${i}">${d.ports[i].name}</option>`).join('')}</select></label>`;
+  modal(`<h3>🔌 توصيل كيبل</h3><p class="note" style="margin:2px 0 10px">${esc(A.name)} ↔ ${esc(B.name)}</p>${sel(A,'cpA')}${sel(B,'cpB')}
+    <label class="f">نوع الكيبل<select id="cpT"><option value="auto">⚡ تلقائي (يختار النوع الصحيح)</option><option value="straight">━ Copper Straight-Through</option><option value="cross">┅ Copper Cross-Over</option></select></label>
+    <p class="note" style="font-size:13px">Straight-Through: بين أجهزة مختلفة (كمبيوتر/راوتر ↔ سويتش). Crossover: بين أجهزة متشابهة (كمبيوتر↔كمبيوتر، سويتش↔سويتش، راوتر↔راوتر، كمبيوتر↔راوتر).</p>
+    <div class="mbtns"><button class="pri" id="cpOk">توصيل</button><button id="cpNo">إلغاء</button></div>`);
+  $('#cpT').value=cableType;
+  $('#cpOk').onclick=()=>{cableType=$('#cpT').value;const o={type:cableType};if($('#cpA'))o.pa=+$('#cpA').value;if($('#cpB'))o.pb=+$('#cpB').value;closeModal();connect(aId,bId,false,o);render()};
+  $('#cpNo').onclick=closeModal;
+}
 function removeLink(id){S.links=S.links.filter(l=>l.id!==id);save();render()}
-function removeDevice(id){linksOf(id).forEach(l=>removeLink(l.id));S.devices=S.devices.filter(x=>x.id!==id);delete termHist[id];delete cliSt[id];save();render()}
+function removeDevice(id){linksOf(id).forEach(l=>removeLink(l.id));S.devices=S.devices.filter(x=>x.id!==id);delete termHist[id];delete cliSt[id];delete pcSess[id];save();render()}
+const deviceByIp=ip=>S.devices.find(d=>(d.type==='router'&&rIfaces(d).some(i=>i.ip===ip))||(d.type==='switch'&&Object.values(d.svi).some(s=>s.ip===ip)));
 
 /* ================= RENDER ================= */
 function devIp(d){
@@ -300,7 +356,7 @@ function devSvg(d){
 function render(){
   if(!S)return;let h='';
   for(const l of S.links){const a=dev(l.a),b=dev(l.b);if(!a||!b)continue;const up=linkUp(l);
-    h+=`<g class="link" data-link="${l.id}"><line class="hit" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/><line class="wire${up?'':' down'}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/></g>`}
+    h+=`<g class="link" data-link="${l.id}"><line class="hit" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/> <line class="wire${up?'':' down'}${l.type==='cross'?' cross':''}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/></g>`}
   for(const l of S.links){const up=linkUp(l);
     for(const [d,o,pi] of [[dev(l.a),dev(l.b),l.pa],[dev(l.b),dev(l.a),l.pb]]){
       if(!d||!o)continue;const dx=o.x-d.x,dy=o.y-d.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len;
@@ -340,7 +396,7 @@ function tapDevice(id){
   }
   if(pending===id){pending=null;render();return}
   const a=pending;pending=null;render();
-  if(mode==='cable'){connect(a,id);render();return}
+  if(mode==='cable'){cablePick(a,id);return}
   const ip=devIp(d);
   if(!ip)return toast(`${esc(d.name)} ما عنده عنوان IP`,'bad');
   runPing(a,ip,null);
@@ -355,6 +411,7 @@ function domain(d,port,tag){
     const n=dev(other(l,from.id)),np=portOf(l,n.id);
     if(!portUp(from,fp)){notes.push(downNote(from,fp));return}
     if(!portUp(n,np)){notes.push(downNote(n,np));return}
+    if(!cableOk(l)){notes.push(`الكيبل بين ${from.name} و ${n.name} نوعه غلط — لازم ${cableName(needType(from,n))}`);return}
     q.push({n,np,tg,path:[...path,n.id]});
   };
   const flood=(sw,v,except,path)=>{
@@ -582,9 +639,12 @@ async function runDhcp(id,out){
 }
 
 /* ================= CISCO CLI ================= */
-const SUFFIX={user:'>',priv:'#',config:'(config)#',if:'(config-if)#',sub:'(config-subif)#',svi:'(config-if)#',dhcp:'(dhcp-config)#',vlan:'(config-vlan)#'};
-const cli=d=>cliSt[d.id]=cliSt[d.id]||{mode:'user',ctx:null,pw:false,hist:[],hi:0};
-const promptOf=d=>{const st=cli(d);return st.pw?'Password:':d.name+SUFFIX[st.mode]};
+const SUFFIX={user:'>',priv:'#',config:'(config)#',if:'(config-if)#',sub:'(config-subif)#',svi:'(config-if)#',dhcp:'(dhcp-config)#',vlan:'(config-vlan)#',line:'(config-line)#'};
+const newSt=()=>({mode:'user',ctx:null,pw:false,ask:null,hist:[],hi:0});
+const cli=d=>cliSt[d.id]=cliSt[d.id]||Object.assign(newSt(),d.lines&&d.lines.con.login&&d.lines.con.pw?{ask:'conwait'}:{});
+const promptOf=(d,st=cli(d))=>st.pw||st.ask==='con'?'Password: ':st.ask==='rsa'?'How many bits in the modulus [512]: ':st.ask==='conwait'?'':d.name+SUFFIX[st.mode];
+const conSess=d=>({st:cli(d),out:(t,c)=>termOut(d.id,t,c),remote:false});
+const defName=d=>/^(Router|Switch)\d*$/.test(d.name);
 function parseIf(s){
   s=s.toLowerCase().replace(/\s+/g,'');
   const m=s.match(/^([a-z]+)([\d\/]+)(?:\.(\d+))?$/);if(!m)return null;
@@ -598,15 +658,15 @@ function matchSpec(pat,toks){
   const P=pat.split(' ');let i=0;const args=[];
   for(let j=0;j<P.length;j++){
     let p=P[j],opt=false;if(p.startsWith('[')){opt=true;p=p.slice(1,-1)}
-    if(i>=toks.length){if(opt)continue;return{incomplete:true}}
+    if(i>=toks.length){if(opt){if(p.startsWith('<'))args.push(undefined);continue}return{incomplete:true}}
     const t=toks[i];
     if(p==='<line>'){args.push(toks.slice(i).join(' '));i=toks.length;continue}
-    if(p==='<if>'){let s=t;if(/^[a-z]+$/i.test(t)&&toks[i+1]&&/^\d/.test(toks[i+1])){s=t+toks[i+1];i++}
-      const r=parseIf(s);if(!r)return{fail:i};args.push(r);i++;continue}
-    if(p==='<ip>'||p==='<mask>'){if(!ipOk(t)||(p==='<mask>'&&!maskOk(t)))return{fail:i};args.push(t);i++;continue}
-    if(p==='<num>'){if(!/^\d+$/.test(t))return{fail:i};args.push(+t);i++;continue}
+    if(p==='<if>'){let s=t,k=i;if(/^[a-z]+$/i.test(t)&&toks[i+1]&&/^\d/.test(toks[i+1])){s=t+toks[i+1];k++}
+      const r=parseIf(s);if(!r)return{fail:i};args.push(r);i=k+1;continue}
+    if(p==='<ip>'||p==='<mask>'){if(!ipOk(t)||(p==='<mask>'&&!maskOk(t))){if(opt){args.push(undefined);continue}return{fail:i}}args.push(t);i++;continue}
+    if(p==='<num>'){if(!/^\d+$/.test(t)){if(opt){args.push(undefined);continue}return{fail:i}}args.push(+t);i++;continue}
     if(p==='<word>'){args.push(t);i++;continue}
-    if(!p.startsWith(t.toLowerCase()))return{fail:i};
+    if(!p.startsWith(t.toLowerCase())){if(opt)continue;return{fail:i}}
     i++;
   }
   return i<toks.length?{fail:i}:{args};
@@ -624,7 +684,8 @@ function enterIf(d,i,st){
       st.mode='sub';st.ctx={port:i.port,sub:name};return}
     st.mode='if';st.ctx={port:i.port};return;
   }
-  if(i.kind==='fa'){if(i.slot!==0||i.port<1||i.port>8)return '%Invalid interface type and number';st.mode='if';st.ctx={port:i.port-1};return}
+  if(i.kind==='fa'&&i.sub==null){if(i.slot!==0||i.port<1||i.port>24)return '%Invalid interface type and number';st.mode='if';st.ctx={port:i.port-1};return}
+  if(i.kind==='gi'&&i.sub==null){if(i.slot!==0||i.port<1||i.port>2)return '%Invalid interface type and number';st.mode='if';st.ctx={port:23+i.port};return}
   if(i.kind==='vlan'){if(i.vlan<1||i.vlan>4094)return '%Invalid interface type and number';if(!d.svi[i.vlan])d.svi[i.vlan]={ip:'',mask:'',shut:true};st.mode='svi';st.ctx={vlan:i.vlan};return}
   return '%Invalid interface type and number';
 }
@@ -647,8 +708,9 @@ function setShut(d,st,on){
   return `%LINK-5-CHANGED: Interface ${p.name}, changed state to ${l?'up':'down'}`+(now?`\n\n%LINEPROTO-5-UPDOWN: Line protocol on Interface ${p.name}, changed state to up`:'');
 }
 function saveCfg(d){d.saved=runCfg(d)}
+function genRsa(d,n){if(n<360||n>4096)return '% Invalid modulus (360 - 4096)';d.rsa=n;return `% Generating ${n} bit RSA keys, keys will be non-exportable...[OK]\n*Mar 1 0:12:31.214: %SSH-5-ENABLED: SSH 1.99 has been enabled`}
 const CMDS=[
-  {d:'rs',m:'user priv',p:'enable',h:'الدخول لوضع الصلاحيات (#)',f:(d,a,st)=>{if(st.mode==='priv')return;if(d.secret){st.pw=true;return}st.mode='priv'}},
+  {d:'rs',m:'user priv',p:'enable',h:'الدخول لوضع الصلاحيات (#)',f:(d,a,st,out,ss)=>{if(st.mode==='priv')return;if(d.secret){st.pw=true;return}if(ss&&ss.remote)return '% No password set';st.mode='priv'}},
   {d:'rs',m:'priv',p:'disable',h:'الرجوع للوضع العادي (>)',f:(d,a,st)=>{st.mode='user'}},
   {d:'rs',m:'priv',p:'configure terminal',h:'الدخول لوضع الإعداد (config)',f:(d,a,st)=>{st.mode='config';return 'Enter configuration commands, one per line.  End with CNTL/Z.'}},
   {d:'rs',m:'user priv',p:'ping <ip>',h:'اختبار الاتصال بعنوان',f:'ping'},
@@ -662,12 +724,38 @@ const CMDS=[
   {d:'rs',m:'priv',p:'show startup-config',h:'الإعدادات المحفوظة',f:d=>d.saved||'startup-config is not present'},
   {d:'rs',m:'priv',p:'copy running-config startup-config',h:'حفظ الإعدادات',f:d=>{saveCfg(d);return 'Destination filename [startup-config]? \nBuilding configuration...\n[OK]'}},
   {d:'rs',m:'priv',p:'write [memory]',h:'حفظ الإعدادات (اختصار)',f:d=>{saveCfg(d);return 'Building configuration...\n[OK]'}},
-  {d:'rs',m:'user priv',p:'exit',h:'إنهاء الجلسة',f:(d,a,st)=>{st.mode='user';return `\n${d.name} con0 is now available\n\nPress RETURN to get started.\n`}},
+  {d:'rs',m:'user priv',p:'exit',h:'إنهاء الجلسة',f:(d,a,st,out,ss)=>{if(ss&&ss.remote){ss.close();return}st.mode='user';st.ask='conwait';return `\n\n\n\n${d.name} con0 is now available\n\nPress RETURN to get started.\n`}},
+  {d:'rs',m:'priv',p:'show ip ssh',h:'حالة SSH',f:d=>d.rsa?`SSH Enabled - version ${d.sshv===2?'2.0':'1.99'}\nAuthentication timeout: 120 secs; Authentication retries: 3`:'SSH Disabled - version 1.99\n%Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).\nAuthentication timeout: 120 secs; Authentication retries: 3'},
+  {d:'rs',m:'config line',p:'line console <num>',h:'إعداد خط الكونسول (الدخول بالكيبل)',f:(d,a,st)=>{if(a[0]!==0)return '%Invalid line number';st.mode='line';st.ctx={line:'con'}}},
+  {d:'rs',m:'config line',p:'line vty <num> <num>',h:'إعداد خطوط الدخول عن بعد (Telnet/SSH)',f:(d,a,st)=>{const mx=d.type==='router'?4:15;if(a[0]>a[1]||a[1]>15)return '% Invalid line range';st.mode='line';st.ctx={line:'vty'};if(a[1]>mx)return `% Only lines 0 - ${mx} exist on this device`}},
+  {d:'rs',m:'line',p:'password <word>',h:'كلمة سر الخط',f:(d,a,st)=>{d.lines[st.ctx.line].pw=a[0]}},
+  {d:'rs',m:'line',p:'no password',h:'حذف كلمة سر الخط',f:(d,a,st)=>{d.lines[st.ctx.line].pw=''}},
+  {d:'rs',m:'line',p:'login local',h:'الدخول باسم مستخدم (username)',f:(d,a,st)=>{Object.assign(d.lines[st.ctx.line],{login:true,local:true})}},
+  {d:'rs',m:'line',p:'login',h:'طلب كلمة السر عند الدخول',f:(d,a,st)=>{Object.assign(d.lines[st.ctx.line],{login:true,local:false})}},
+  {d:'rs',m:'line',p:'no login',h:'إلغاء طلب كلمة السر',f:(d,a,st)=>{Object.assign(d.lines[st.ctx.line],{login:false,local:false})}},
+  {d:'rs',m:'line',p:'transport input <word>',h:'السماح بـ ssh أو telnet أو all',f:(d,a,st)=>{if(st.ctx.line!=='vty')return '% Invalid input detected';const v=a[0].toLowerCase();const k=['ssh','telnet','all','none'].find(x=>x.startsWith(v));if(!k)return '% Invalid input detected';d.lines.vty.transport=k}},
+  {d:'rs',m:'line',p:'exec-timeout <num> [<num>]',h:'مدة الخروج التلقائي',f:()=>{}},
+  {d:'rs',m:'line',p:'logging synchronous',h:'ترتيب الرسائل مع الكتابة',f:()=>{}},
+  {d:'rs',m:'config',p:'service password-encryption',h:'تشفير كلمات المرور في الإعدادات',f:d=>{d.spe=true}},
+  {d:'rs',m:'config',p:'no service password-encryption',h:'إلغاء التشفير',f:d=>{d.spe=false}},
+  {d:'rs',m:'config',p:'ip domain-name <word>',h:'اسم النطاق (مطلوب لـ SSH)',f:(d,a)=>{d.domain=a[0]}},
+  {d:'rs',m:'config',p:'no ip domain-lookup',h:'إيقاف ترجمة الأوامر الغلط كأسماء',f:d=>{d.lookup=false}},
+  {d:'rs',m:'config',p:'ip domain-lookup',h:'تشغيل ترجمة الأسماء',f:d=>{d.lookup=true}},
+  {d:'rs',m:'config',p:'username <word> secret <word>',h:'إنشاء مستخدم بكلمة سر مشفرة',f:(d,a)=>{d.users[a[0]]={pw:a[1],secret:true}}},
+  {d:'rs',m:'config',p:'username <word> password <word>',h:'إنشاء مستخدم',f:(d,a)=>{d.users[a[0]]={pw:a[1],secret:false}}},
+  {d:'rs',m:'config',p:'no username <word>',h:'حذف مستخدم',f:(d,a)=>{delete d.users[a[0]]}},
+  {d:'rs',m:'config',p:'crypto key generate rsa [general-keys] [modulus] [<num>]',h:'إنشاء مفاتيح التشفير لـ SSH',f:(d,a,st)=>{
+    if(defName(d))return `% Please define a hostname other than ${d.type==='router'?'Router':'Switch'}.`;
+    if(!d.domain)return '% Please define a domain-name first.';
+    const n=a[0];if(n!=null)return genRsa(d,n);
+    st.ask='rsa';return `The name for the keys will be: ${d.name}.${d.domain}\nChoose the size of the key modulus in the range of 360 to 4096 for your\n  General Purpose Keys. Choosing a key modulus greater than 512 may take\n  a few minutes.\n`}},
+  {d:'rs',m:'config',p:'crypto key zeroize rsa',h:'حذف مفاتيح RSA',f:d=>{d.rsa=0;return '% All keys will be removed.\n%SSH-5-DISABLED: SSH 1.99 has been disabled'}},
+  {d:'rs',m:'config',p:'ip ssh version <num>',h:'إصدار SSH',f:(d,a)=>{if(a[0]!==1&&a[0]!==2)return '% Invalid input detected';if(a[0]===2&&d.rsa<768)return 'Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).';d.sshv=a[0]}},
   {d:'rs',m:'config',p:'hostname <word>',h:'تغيير اسم الجهاز',f:(d,a)=>{if(!/^[A-Za-z][\w-]{0,30}$/.test(a[0]))return '% Invalid hostname';d.name=a[0];if(openId===d.id)$('#sheetTitle').textContent=`${d.name} — ${META[d.type].label}`}},
   {d:'rs',m:'config',p:'enable secret <word>',h:'كلمة سر لوضع الصلاحيات',f:(d,a)=>{d.secret=a[0]}},
   {d:'rs',m:'config',p:'no enable secret',h:'إزالة كلمة السر',f:d=>{d.secret=''}},
   {d:'rs',m:'config',p:'banner motd <line>',h:'رسالة الترحيب',f:(d,a)=>{d.banner=a[0].replace(/^[#^$%]+|[#^$%]+$/g,'')}},
-  {d:'rs',m:'config if sub svi dhcp vlan',p:'interface <if>',h:'الدخول لإعداد منفذ',f:(d,a,st)=>enterIf(d,a[0],st)},
+  {d:'rs',m:'config if sub svi dhcp vlan line',p:'interface <if>',h:'الدخول لإعداد منفذ',f:(d,a,st)=>enterIf(d,a[0],st)},
   {d:'r',m:'config',p:'ip route <ip> <mask> <ip>',h:'إضافة Static Route',f:(d,a)=>{
     if(netAddr(a[0],a[1])!==a[0])return '%Inconsistent address and mask';
     if(!d.routes.some(r=>r.net===a[0]&&r.mask===a[1]&&r.nh===a[2]))d.routes.push({net:a[0],mask:a[1],nh:a[2]})}},
@@ -698,8 +786,8 @@ const CMDS=[
   {d:'r',m:'dhcp',p:'default-router <ip>',h:'البوابة اللي تنعطى للأجهزة',f:(d,a,st)=>{curObj(d,st).gw=a[0]}},
   {d:'r',m:'dhcp',p:'dns-server <ip>',h:'الـ DNS اللي ينعطى للأجهزة',f:(d,a,st)=>{curObj(d,st).dns=a[0]}},
   {d:'s',m:'vlan',p:'name <word>',h:'تسمية الـ VLAN',f:(d,a,st)=>{d.vlans[st.ctx.vlan]=a[0]}},
-  {d:'rs',m:'config if sub svi dhcp vlan',p:'exit',h:'الرجوع خطوة للخلف',f:(d,a,st)=>{st.mode=st.mode==='config'?'priv':'config';st.ctx=null}},
-  {d:'rs',m:'config if sub svi dhcp vlan',p:'end',h:'الرجوع لوضع الصلاحيات (#)',f:(d,a,st)=>{st.mode='priv';st.ctx=null}},
+  {d:'rs',m:'config if sub svi dhcp vlan line',p:'exit',h:'الرجوع خطوة للخلف',f:(d,a,st)=>{st.mode=st.mode==='config'?'priv':'config';st.ctx=null}},
+  {d:'rs',m:'config if sub svi dhcp vlan line',p:'end',h:'الرجوع لوضع الصلاحيات (#)',f:(d,a,st)=>{st.mode='priv';st.ctx=null}},
 ];
 const specsFor=(d,m)=>CMDS.filter(c=>c.d.includes(d.type[0])&&c.m.split(' ').includes(m));
 function findCmd(d,m,toks){
@@ -714,9 +802,9 @@ function cliHelp(d,st,txt){
   if(!list.length)return '% Unrecognized command';
   return list.map(c=>'  '+c.p.padEnd(40)+' '+c.h).join('\n');
 }
-function cliComplete(d,val){
+function cliComplete(d,val,st=cli(d)){
   if(/\s$/.test(val)||!val.trim())return val;
-  const toks=val.trim().split(/\s+/),last=toks.pop().toLowerCase(),st=cli(d),set=new Set();
+  const toks=val.trim().split(/\s+/),last=toks.pop().toLowerCase(),set=new Set();
   for(const c of specsFor(d,st.mode)){
     const P=c.p.split(' ').map(x=>x.replace(/[\[\]]/g,''));if(P.length<=toks.length)continue;
     let ok=true;for(let i=0;i<toks.length;i++){if(P[i].startsWith('<'))continue;if(!P[i].startsWith(toks[i].toLowerCase())){ok=false;break}}
@@ -724,10 +812,14 @@ function cliComplete(d,val){
   }
   return set.size===1?[...toks,[...set][0]].join(' ')+' ':val;
 }
-function cliExec(d,line){
-  const st=cli(d),out=(t,c)=>termOut(d.id,t,c);
+function cliExec(d,line,ss){
+  ss=ss||conSess(d);const st=ss.st,out=ss.out;
   if(st.pw){st.pw=false;out('Password: ');if(line===d.secret)st.mode='priv';else out('% Bad secrets','err');return}
-  const pr=promptOf(d),raw=line.trim();out(pr+line);if(!raw)return;
+  if(st.ask==='conwait'){const c=d.lines.con;out('');if(d.banner)out(d.banner+'\n');
+    if(c.login&&c.pw){out('User Access Verification\n');st.ask='con'}else{st.ask=null;if(c.login)out('Password required, but none set — (الدخول مسموح في المحاكي)','hint')}return}
+  if(st.ask==='con'){out('Password: ');if(line===d.lines.con.pw)st.ask=null;else out('% Bad passwords','err');return}
+  if(st.ask==='rsa'){out(promptOf(d,st)+line);st.ask=null;const r=genRsa(d,+line.trim()||512);out(r,r.startsWith('% Inv')?'err':'');save();return}
+  const pr=promptOf(d,st),raw=line.trim();out(pr+line);if(!raw)return;
   st.hist.push(raw);st.hi=st.hist.length;
   if(raw.endsWith('?')){out(cliHelp(d,st,raw.slice(0,-1)));return}
   let toks=raw.split(/\s+/),m=st.mode,off=0;
@@ -736,12 +828,12 @@ function cliExec(d,line){
   if(!r.c&&!off&&!['user','priv','config'].includes(m)){const r2=findCmd(d,'config',toks);if(r2.c){st.mode='config';st.ctx=null;m='config';r=r2}}
   if(!r.c){
     if(r.incomplete)return out('% Incomplete command.','err');
-    if(['user','priv'].includes(m)&&r.fail===0)return out(`Translating "${toks[0]}"...domain server (255.255.255.255)\n% Unknown command or computer name, or unable to find computer address`,'err');
+    if(['user','priv'].includes(m)&&r.fail===0)return out((d.lookup?`Translating "${toks[0]}"...domain server (255.255.255.255)\n`:'')+'% Unknown command or computer name, or unable to find computer address','err');
     return out(' '.repeat(pr.length+tokPos(raw,Math.max(0,r.fail)+off))+'^\n% Invalid input detected at \'^\' marker.','err');
   }
   if(r.c.f==='ping'){runPing(d.id,r.args[0],out,true);return}
   const ctx=off?{...st,mode:'priv'}:st;
-  const res=r.c.f(d,r.args,ctx,out);
+  const res=r.c.f(d,r.args,ctx,out,ss);
   if(typeof res==='string'&&res)out(res,res.startsWith('%')&&!res.startsWith('%LINK')&&!res.startsWith('%LINEPROTO')?'err':'');
   render();save();
 }
@@ -789,10 +881,14 @@ function showTrunk(sw){
   return 'Port        Mode         Encapsulation  Status        Native vlan\n'+t.map(x=>short(x.p.name).padEnd(12)+'on'.padEnd(13)+'802.1q'.padEnd(15)+(portStat(sw,x.i)[0]==='up'?'trunking':'not-trunking').padEnd(14)+'1').join('\n')+
     '\n\nPort        Vlans allowed on trunk\n'+t.map(x=>short(x.p.name).padEnd(12)+'1-1005').join('\n');
 }
+const pw7=s=>{let h='08';for(let i=0;i<s.length;i++)h+=((s.charCodeAt(i)^(0x2c+i*7))&255).toString(16).padStart(2,'0').toUpperCase();return h};
 const fakeHash=s=>{let h=5381;for(const c of s)h=((h*33)^c.charCodeAt(0))>>>0;return '$1$mERr$'+(h.toString(36)+'hx5rVt7rPNoS4wqbXKX7m0').slice(0,22)};
 function runCfg(d){
-  const o=['!','version 15.1','no service timestamps log datetime msec','no service timestamps debug datetime msec','no service password-encryption','!',`hostname ${d.name}`,'!'];
+  const o=['!','version 15.1','no service timestamps log datetime msec','no service timestamps debug datetime msec',d.spe?'service password-encryption':'no service password-encryption','!',`hostname ${d.name}`,'!'];
   if(d.secret)o.push(`enable secret 5 ${fakeHash(d.secret)}`,'!');
+  const pw=s=>d.spe?'7 '+pw7(s):s;
+  Object.entries(d.users).forEach(([u,x])=>o.push(`username ${u} ${x.secret?'secret 5 '+fakeHash(x.pw):'password '+pw(x.pw)}`));if(Object.keys(d.users).length)o.push('!');
+  if(d.domain)o.push(`ip domain-name ${d.domain}`);if(!d.lookup)o.push('no ip domain-lookup');if(d.rsa&&d.sshv===2)o.push('ip ssh version 2');if(d.domain||!d.lookup||d.rsa)o.push('!');
   if(d.type==='router'){
     d.excl.forEach(([a,b])=>o.push(`ip dhcp excluded-address ${a}${a===b?'':' '+b}`));if(d.excl.length)o.push('!');
     d.pools.forEach(p=>{o.push(`ip dhcp pool ${p.name}`);if(p.net)o.push(` network ${p.net} ${p.mask}`);if(p.gw)o.push(` default-router ${p.gw}`);if(p.dns)o.push(` dns-server ${p.dns}`);o.push('!')});
@@ -814,7 +910,9 @@ function runCfg(d){
     if(d.gw)o.push(`ip default-gateway ${d.gw}`,'!');
   }
   if(d.banner)o.push(`banner motd ^C${d.banner}^C`,'!');
-  o.push('line con 0','!','line vty 0 4',' login','!','end');
+  const ln=x=>{const r=[];if(x.pw)r.push(` password ${pw(x.pw)}`);if(x.login)r.push(x.local?' login local':' login');if(x.transport&&x.transport!=='all')r.push(` transport input ${x.transport}`);return r};
+  o.push('line con 0',...ln(d.lines.con),'!');if(d.type==='router')o.push('line aux 0','!');
+  o.push(d.type==='router'?'line vty 0 4':'line vty 0 4',...ln(d.lines.vty));if(d.type==='switch')o.push('line vty 5 15',...ln(d.lines.vty));o.push('!','end');
   const body=o.join('\n');
   return `Building configuration...\n\nCurrent configuration : ${body.length} bytes\n`+body;
 }
@@ -889,10 +987,11 @@ function renderPane(t){
       <div class="box2"><h4>🏷️ الـ VLANs</h4><table class="tbl code">${vl.map(v=>`<tr><td>${v}</td><td>${esc(d.vlans[v])}</td><td>${v===1?'':`<button class="del" data-v="${v}">✕</button>`}</td></tr>`).join('')}</table>
       <div class="row3"><label class="f">رقم<input id="vNum" dir="ltr" inputmode="numeric" placeholder="10"></label><label class="f">الاسم<input id="vName" dir="ltr" placeholder="SALES"></label><button class="add" id="vAdd">إضافة</button></div></div>
       <table class="ptbl"><tr><th>المنفذ</th><th>موصول بـ</th><th>الوضع</th><th>VLAN</th><th>تشغيل</th></tr>
-      ${d.ports.map((p,i)=>{const l=portLink(d,i),o=l&&dev(other(l,d.id));return `<tr><td class="pn">${short(p.name)}</td><td>${o?esc(o.name):'—'}</td>
+      ${d.ports.map((p,i)=>[p,i]).filter(([p,i])=>portLink(d,i)).map(([p,i])=>{const l=portLink(d,i),o=l&&dev(other(l,d.id));return `<tr><td class="pn">${short(p.name)}</td><td>${o?esc(o.name):'—'}</td>
         <td><select class="sMode" data-i="${i}"><option value="access" ${p.mode==='access'?'selected':''}>Access</option><option value="trunk" ${p.mode==='trunk'?'selected':''}>Trunk</option></select></td>
         <td><select class="sVlan" data-i="${i}" ${p.mode==='trunk'?'disabled':''}>${vl.map(v=>`<option value="${v}" ${p.vlan===v?'selected':''}>${v}</option>`).join('')}</select></td>
-        <td><input type="checkbox" class="sOn" data-i="${i}" ${p.shut?'':'checked'}></td></tr>`}).join('')}</table>
+        <td><input type="checkbox" class="sOn" data-i="${i}" ${p.shut?'':'checked'}></td></tr>`}).join('')||'<tr><td colspan="5">ما فيه منافذ موصولة بعد</td></tr>'}</table>
+      <p class="note" style="font-size:12.5px">يظهر هنا المنافذ الموصولة فقط. باقي المنافذ (Fa0/1-24 و Gi0/1-2) تقدر تضبطها من CLI.</p>
       <button class="save" id="fSave">حفظ</button>`;
     el.querySelectorAll('.del').forEach(b=>b.onclick=()=>{delete d.vlans[b.dataset.v];save();render();renderPane('cfg')});
     el.querySelectorAll('.sMode').forEach(s=>s.onchange=()=>{el.querySelector(`.sVlan[data-i="${s.dataset.i}"]`).disabled=s.value==='trunk'});
@@ -990,28 +1089,69 @@ function termOut(id,line,cls=''){(termHist[id]=termHist[id]||[]).push({line,cls}
 function renderTerm(){
   const el=$('#term'),d=openId&&dev(openId);if(!el||!d)return;
   if(!termHist[d.id])termHist[d.id]=HOST.includes(d.type)?[{line:'Network Academy Command Line\nاكتب help لعرض الأوامر\n'}]:
-    [{line:(d.banner?d.banner+'\n\n':'')+'Cisco IOS Software (محاكاة) — '+(d.type==='router'?'ISR4321 Router':'Catalyst 2960 Switch')+'\nاكتب ? لعرض الأوامر · الاختصارات تشتغل: en ، conf t ، int g0/0 ، sh ip int br\n'}];
+    [{line:'Cisco IOS Software (محاكاة) — '+(d.type==='router'?'Router':'Catalyst 2960 Switch')+'\nاكتب ? لعرض الأوامر · الاختصارات تشتغل: en ، conf t ، int g0/0 ، sh ip int br\n'+(cli(d).ask==='conwait'?'\nPress RETURN to get started.\n':'')}];
   el.innerHTML=termHist[d.id].map(h=>`<div class="${h.cls||(/[\u0600-\u06FF]/.test(h.line)?'wrap':'')}">${esc(h.line)}</div>`).join('');el.scrollTop=el.scrollHeight;
-  const tp=$('#tp'),ti=$('#termIn');
-  if(tp)tp.textContent=HOST.includes(d.type)?'C:\\>':promptOf(d);
-  if(ti){ti.type=!HOST.includes(d.type)&&cli(d).pw?'password':'text';ti.placeholder=HOST.includes(d.type)?'help':(cli(d).pw?'':'?')}
+  const tp=$('#tp'),ti=$('#termIn'),s=HOST.includes(d.type)&&pcSess[d.id];
+  let pr,pwd;
+  if(s){pr=s.phase==='user'?'Username: ':s.phase==='pass'?'Password: ':promptOf(s.tgt,s.ss.st);pwd=s.phase==='pass'||s.ss.st.pw||s.ss.st.ask==='con'}
+  else if(HOST.includes(d.type)){pr='C:\\>';pwd=false}
+  else{pr=promptOf(d);pwd=cli(d).pw||cli(d).ask==='con'}
+  if(tp)tp.textContent=pr;
+  if(ti){ti.type=pwd?'password':'text';ti.placeholder=pwd?'':HOST.includes(d.type)&&!s?'help':'?'}
 }
 function termKey(e){
-  const d=dev(openId);if(!d)return;const i=e.target;
-  if(!HOST.includes(d.type)){const st=cli(d);
-    if(e.key==='Tab'){e.preventDefault();i.value=cliComplete(d,i.value);return}
+  const d=dev(openId);if(!d)return;const i=e.target,s=HOST.includes(d.type)&&pcSess[d.id];
+  if(!HOST.includes(d.type)||(s&&s.phase==='up')){const tg=s?s.tgt:d,st=s?s.ss.st:cli(d);
+    if(e.key==='Tab'){e.preventDefault();i.value=cliComplete(tg,i.value,st);return}
     if(e.key==='ArrowUp'){e.preventDefault();if(st.hi>0){st.hi--;i.value=st.hist[st.hi]||''}return}
     if(e.key==='ArrowDown'){e.preventDefault();if(st.hi<st.hist.length){st.hi++;i.value=st.hist[st.hi]||''}return}
   }
   if(e.key!=='Enter')return;
   const v=i.value;i.value='';
-  if(HOST.includes(d.type))pcExec(d,v);else cliExec(d,v);
+  if(s)remoteInput(d,v);else if(HOST.includes(d.type))pcExec(d,v);else cliExec(d,v);
   renderTerm();
+}
+function remoteInput(pc,v){
+  const s=pcSess[pc.id],out=(t,c)=>termOut(pc.id,t,c);if(!s)return pcExec(pc,v);const T=s.tgt;
+  if(s.phase==='user'){out('Username: '+v);s.user=v.trim();s.phase='pass';return}
+  if(s.phase==='pass'){out('Password: ');
+    const u=T.users[s.user],ok=s.local?!!u&&u.pw===v:v===T.lines.vty.pw;
+    if(!ok){s.tries=(s.tries||0)+1;out(s.local?'% Login invalid':'% Bad passwords','err');
+      if(s.tries>=3||s.method==='ssh'){delete pcSess[pc.id];out(`\n[Connection to ${s.ip} closed by foreign host]`)}else if(s.local)s.phase='user';return}
+    s.phase='up';logRemote(pc,s);out('');return}
+  cliExec(T,v,s.ss);
+}
+function logRemote(pc,s){S.ev=S.ev||{};S.ev[`${s.method}:${pc.name}:${s.tgt.name}`]=true;save()}
+async function openRemote(pc,method,ip,user,out){
+  if(busy)return;busy=true;
+  try{
+    out(`Trying ${ip} ...${method==='telnet'?'':''}`);
+    const r=pingCore(pc.id,ip);await animate(r.anim,r.ok,'🔐');
+    if(!r.ok){out('% Connection timed out; remote host not responding','err');if(r.hint)out('💡 '+r.hint,'hint');return}
+    const T=deviceByIp(ip);
+    if(!T){out('% Connection refused by remote host','err');out('💡 هذا العنوان مو راوتر أو سويتش.','hint');return}
+    const v=T.lines.vty,tr=v.transport;
+    if(tr==='none'||(method==='telnet'&&tr==='ssh')||(method==='ssh'&&tr==='telnet')){out('% Connection refused by remote host','err');out(`💡 ${T.name} يسمح فقط بـ transport input ${tr}`,'hint');return}
+    if(method==='ssh'){
+      if(!T.rsa){out('% Connection refused by remote host','err');out('💡 ما فيه مفاتيح RSA على '+T.name+' (crypto key generate rsa).','hint');return}
+      if(!v.login||!v.local){out('% Connection refused by remote host','err');out('💡 SSH يحتاج login local على line vty، ومستخدم username.','hint');return}
+    }
+    if(method==='telnet')out('Open');
+    if(T.banner)out('\n'+T.banner+'\n');
+    if(method==='telnet'&&v.login&&!v.local&&!v.pw){out('Password required, but none set\n\n[Connection to '+ip+' closed by foreign host]','err');return}
+    const s={tgt:T,ip,method,local:v.login&&v.local,user:user||'',phase:'up',tries:0};
+    s.ss={st:newSt(),out:(t,c)=>termOut(pc.id,t,c),remote:true,close:()=>{delete pcSess[pc.id];termOut(pc.id,`\n[Connection to ${ip} closed by foreign host]`);renderTerm()}};
+    pcSess[pc.id]=s;
+    if(v.login){out('User Access Verification\n');s.phase=method==='ssh'||!s.local?'pass':'user'}else logRemote(pc,s);
+  }finally{busy=false;renderTerm()}
 }
 function pcExec(d,cmd){
   const id=d.id,out=(l,c)=>termOut(id,l,c);cmd=cmd.trim();out('C:\\>'+cmd);if(!cmd)return;
   const [c,arg]=cmd.split(/\s+/),cl=c.toLowerCase();
-  if(cl==='help')out('ipconfig            عرض إعدادات الشبكة\nipconfig /renew     طلب عنوان من DHCP\nping <IP أو اسم>    اختبار الاتصال\nnslookup <اسم>      البحث عن عنوان اسم\ncls                 مسح الشاشة');
+  if(cl==='help')out('ipconfig               عرض إعدادات الشبكة\nipconfig /renew        طلب عنوان من DHCP\nping <IP أو اسم>       اختبار الاتصال\nnslookup <اسم>         البحث عن عنوان اسم\ntelnet <IP>            الدخول على راوتر/سويتش (غير مشفر)\nssh -l <user> <IP>     الدخول الآمن المشفر\ncls                    مسح الشاشة');
+  else if(cl==='telnet'){if(!arg||!ipOk(arg))out('مثال: telnet 192.168.1.1','err');else openRemote(d,'telnet',arg,null,out)}
+  else if(cl==='ssh'){const t=cmd.split(/\s+/),k=t.indexOf('-l'),user=k>0?t[k+1]:null,ip=t[t.length-1];
+    if(!user||!ipOk(ip))out('مثال: ssh -l admin 192.168.1.1','err');else openRemote(d,'ssh',ip,user,out)}
   else if(cl==='ipconfig'&&arg&&arg.toLowerCase()==='/renew'){if(!d.dhcp)out('الجهاز على Static. غيّره لـ DHCP من الإعدادات أول.','err');else runDhcp(id,out)}
   else if(cl==='ipconfig')out(`\nFastEthernet0 Connection:\n   DHCP Enabled. . . . : ${d.dhcp?'Yes':'No'}\n   IPv4 Address. . . . : ${d.ip||'(none)'}\n   Subnet Mask . . . . : ${d.mask}\n   Default Gateway . . : ${d.gw}\n   DNS Server. . . . . : ${d.dns}\n`);
   else if(cl==='ping'){if(!arg)out('اكتب عنوان أو اسم، مثال: ping 192.168.1.2','err');else runPing(id,arg,out)}
@@ -1361,10 +1501,552 @@ R1(config-if)# no shutdown`),
   ['كل الإعدادات محفوظة (write memory)',()=>allSaved()]]},
 ];
 const LAB={id:'lab',title:'المختبر الحر',tag:'🧪 جرّب أي شبكة',lesson:'',task:'',hint:'',reqs:[]};
+
+/* ================= LAB ASSESSMENT HELPERS ================= */
+const N=n=>S.devices.find(d=>d.name===n);
+const Dv=(n,f)=>{const d=N(n);return d?f(d):no(`ما فيه جهاز اسمه ${n} (انتبه للأحرف الكبيرة والشرطة).`)};
+function pidx(d,p){
+  if(HOST.includes(d.type))return 0;const i=parseIf(p);if(!i)return -1;
+  if(d.type==='router')return i.kind==='gi'&&i.slot===0&&i.port<4&&i.sub==null?i.port:-1;
+  if(i.kind==='fa'&&i.slot===0&&i.port>=1&&i.port<=24)return i.port-1;
+  if(i.kind==='gi'&&i.slot===0&&i.port>=1&&i.port<=2)return 23+i.port;
+  return -1;
+}
+const isDev=(n,t)=>Dv(n,d=>d.type===t?OK:no(`${n} لازم يكون ${META[t].label}، حالياً ${META[d.type].label}.`));
+function conn(a,pa,b,pb){
+  const A=N(a),B=N(b);if(!A||!B)return no(`لازم يكون فيه جهاز اسمه ${A?b:a}.`);
+  const l=linkBetween(A.id,B.id);if(!l)return no(`${a} مو موصول بـ ${b}.`);
+  for(const [D,p] of [[A,pa],[B,pb]]){const want=pidx(D,p),got=portOf(l,D.id);if(!HOST.includes(D.type)&&want!==got)return no(`الكيبل في ${D.name} لازم يكون على ${p} — حالياً على ${short(portName(D,got))}.`)}
+  if(!cableOk(l))return no(`نوع الكيبل غلط (${cableName(l.type)}) — لازم ${cableName(needType(A,B))}.`);
+  return OK;
+}
+const hostCfg=(n,ip,mask,gw)=>Dv(n,d=>d.ip!==ip?no(`IP لازم يكون ${ip} (حالياً ${d.ip||'فاضي'}).`):d.mask!==mask?no(`Subnet Mask لازم ${mask}.`):gw!=null&&d.gw!==gw?no(`Default Gateway لازم ${gw} (حالياً ${d.gw||'فاضي'}).`):OK);
+const hostIn=(n,net,mask,gw)=>Dv(n,d=>!d.ip?no('ما عنده عنوان IP.'):d.mask!==mask?no(`Subnet Mask لازم ${mask}.`):!sameNet(d.ip,net,mask)||hostBad(d.ip,mask)?no(`العنوان ${d.ip} مو من الشبكة ${net}.`):allIps(d.id).some(x=>x.ip===d.ip)?no(`العنوان ${d.ip} مستخدم في جهاز ثاني.`):gw&&d.gw!==gw?no(`Default Gateway غلط (حالياً ${d.gw||'فاضي'}).`):OK);
+const portObj=(d,p)=>{const i=pidx(d,p);return i<0?null:d.ports[i]};
+const ifCfg=(n,p,ip,mask)=>Dv(n,d=>{const x=portObj(d,p);return x.ip===ip&&x.mask===mask?OK:no(`${p} لازم ip address ${ip} ${mask} (حالياً ${x.ip?x.ip+' '+x.mask:'بدون عنوان'}).`)});
+const ifUp=(n,p)=>Dv(n,d=>{const i=pidx(d,p),[s]=portStat(d,i);return s==='up'?OK:no(`${p} حالته ${s}${d.ports[i].shut?' — اكتب no shutdown':portLink(d,i)?' — تأكد من الطرف الثاني ونوع الكيبل':' — مو موصول'}.`)});
+const ifDesc=(n,p)=>Dv(n,d=>portObj(d,p).desc?OK:no(`أضف description على ${p}.`));
+const secretIs=(n,pw)=>Dv(n,d=>d.secret===pw?OK:no(d.secret?'enable secret غلط (انتبه للأحرف الكبيرة والصغيرة).':'ما فيه enable secret.'));
+const conPw=(n,pw)=>Dv(n,d=>{const c=d.lines.con;return c.pw!==pw?no(c.pw?'كلمة سر line console 0 غلط.':'ما فيه password على line console 0.'):!c.login?no('ناقص أمر login تحت line console 0.'):OK});
+const vtyPw=(n,pw)=>Dv(n,d=>{const v=d.lines.vty;return v.pw!==pw?no(v.pw?'كلمة سر line vty غلط.':'ما فيه password على line vty.'):!v.login||v.local?no('اكتب login تحت line vty.'):OK});
+const bannerHas=(n,t)=>Dv(n,d=>d.banner&&d.banner.toLowerCase().includes(t.toLowerCase())?OK:no(d.banner?`نص الـ banner لازم يحتوي: ${t}`:'ما فيه banner motd.'));
+const sviCfg=(n,v,ip,mask)=>Dv(n,d=>{const s=d.svi[v];if(!s||s.ip!==ip||s.mask!==mask)return no(`interface vlan ${v} لازم ip address ${ip} ${mask}.`);return s.shut?no(`interface vlan ${v} مطفأ — اكتب no shutdown.`):OK});
+const swGw=(n,gw)=>Dv(n,d=>d.gw===gw?OK:no(`ip default-gateway لازم ${gw} (حالياً ${d.gw||'فاضي'}).`));
+const savedN=n=>Dv(n,d=>savedOk(d)?OK:no(d.saved?'تغيّرت الإعدادات بعد آخر حفظ — احفظ مرة ثانية.':'الإعدادات مو محفوظة — copy running-config startup-config'));
+const pingN=(a,ip)=>Dv(a,d=>{if(!d.ip)return no(`${a} ما عنده عنوان IP.`);const r=pingCore(d.id,ip);return r.ok?OK:no(r.hint||'فشل الاتصال.')});
+const noPing=(a,ip)=>Dv(a,d=>d.ip&&!pingCore(d.id,ip).ok?OK:no(`${a} يوصل لـ ${ip} — المفروض يكون معزول.`));
+const speN=n=>Dv(n,d=>d.spe?OK:no('ناقص service password-encryption.'));
+const vlanNm=(n,v,name)=>Dv(n,d=>d.vlans[v]===name?OK:no(d.vlans[v]?`اسم VLAN ${v} لازم ${name} (حالياً ${d.vlans[v]}).`:`VLAN ${v} مو موجودة في ${n}.`));
+const vlanEx=(n,v)=>Dv(n,d=>d.vlans[v]?OK:no(`VLAN ${v} مو موجودة في ${n}.`));
+const accessP=(n,p,v)=>Dv(n,d=>{const x=portObj(d,p);return x.mode==='access'&&x.vlan===v?OK:no(`${p} لازم access في VLAN ${v} (حالياً ${x.mode==='trunk'?'trunk':'VLAN '+x.vlan}).`)});
+const trunkP=(n,p)=>Dv(n,d=>portObj(d,p).mode==='trunk'?OK:no(`${p} لازم switchport mode trunk.`));
+const subCfg=(n,name,v,ip,mask)=>Dv(n,d=>{const s=d.ports.flatMap(p=>p.subs).find(s=>short(s.name).toLowerCase()===name.toLowerCase().replace(/^g(?!i)/,'gi'));
+  if(!s)return no(`ما فيه interface ${name}.`);if(s.vlan!==v)return no(`${name} لازم encapsulation dot1Q ${v}.`);return s.ip===ip&&s.mask===mask?OK:no(`${name} لازم ip address ${ip} ${mask}.`)});
+const routeN=(n,net,mask,nh)=>Dv(n,d=>d.routes.some(r=>r.net===net&&r.mask===mask&&(!nh||r.nh===nh))?OK:no(`ناقص: ip route ${net} ${mask}${nh?' '+nh:''}`));
+const poolN=(n,name,net,mask)=>Dv(n,d=>{const p=d.pools.find(p=>p.name===name);return !p?no(`ما فيه ip dhcp pool ${name}.`):p.net===net&&p.mask===mask?OK:no(`داخل pool ${name}: network ${net} ${mask}`)});
+const poolOpt=(n,name,k,v,cmd)=>Dv(n,d=>{const p=d.pools.find(p=>p.name===name);return p&&p[k]===v?OK:no(`داخل pool ${name}: ${cmd} ${v}`)});
+const exclN=(n,a,b)=>Dv(n,d=>covers(d,a,b)?OK:no(`ناقص: ip dhcp excluded-address ${a} ${b}`));
+const leasedFrom=(n,src)=>Dv(n,d=>!d.dhcp?no(`${n} على Static — خليه DHCP.`):!leased(d)?no(`${n} ما أخذ عنوان من DHCP (اضغط «طلب عنوان» أو ipconfig /renew).`):dev(d.lease).name!==src?no(`أخذ عنوانه من ${dev(d.lease).name}، المطلوب من ${src}.`):OK);
+const webN=(n,url)=>Dv(n,d=>{const r=webCheck(d.id,url);return r.ok?OK:no(r.hint)});
+const evN=(k,why)=>S.ev&&S.ev[k]?OK:no(why);
+const userN=(n,u,pw)=>Dv(n,d=>{const x=d.users[u];return !x?no(`ما فيه username ${u}.`):x.pw!==pw?no(`كلمة سر المستخدم ${u} غلط.`):!x.secret?no(`استخدم username ${u} secret (مو password).`):OK});
+const domainN=(n,dm)=>Dv(n,d=>d.domain===dm?OK:no(`ip domain-name لازم ${dm}.`));
+const rsaN=(n,b)=>Dv(n,d=>d.rsa>=b?OK:no(d.rsa?`المفتاح ${d.rsa} bit — المطلوب ${b} على الأقل.`:'ما فيه مفاتيح RSA — crypto key generate rsa (1024).'));
+const sshv2=n=>Dv(n,d=>d.sshv===2&&d.rsa?OK:no('اكتب ip ssh version 2.'));
+const vtySsh=n=>Dv(n,d=>{const v=d.lines.vty;return v.transport!=='ssh'?no('تحت line vty: transport input ssh'):!v.local||!v.login?no('تحت line vty: login local'):OK});
+const helperN=(n,p,ip)=>Dv(n,d=>portObj(d,p).helper===ip?OK:no(`على ${p}: ip helper-address ${ip}`));
+const srvSvc=(n,k,f)=>Dv(n,d=>d.type!=='server'?no(`${n} لازم يكون سيرفر.`):f(d.svc[k]));
+
+/* ================= TOPOLOGY & DOC ================= */
+function topoSvg(t){
+  const W=440,H=330,P=(x,y)=>[34+x/100*(W-68),28+y/100*(H-74)],pos={};
+  t.n.forEach(([n,ty,x,y])=>pos[n]={ty,p:P(x,y)});
+  let s='';
+  t.l.forEach(([a,pa,b,pb,c])=>{const A=pos[a].p,B=pos[b].p;
+    s+=`<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" class="tl${c==='c'?' tc':''}"/>`;
+    for(const [P1,P2,lab,ty] of [[A,B,pa,pos[a].ty],[B,A,pb,pos[b].ty]]){if(!lab)continue;
+      const dx=P2[0]-P1[0],dy=P2[1]-P1[1],L=Math.hypot(dx,dy)||1,k=Math.min(ty==='switch'?52:46,L/2.4),x=P1[0]+dx/L*k,y=P1[1]+dy/L*k;
+      s+=`<rect x="${x-22}" y="${y-10}" width="44" height="16" rx="4" class="tlb"/><text x="${x}" y="${y+2.5}" class="tpt">${esc(lab)}</text>`}});
+  t.n.forEach(([n,ty,x,y])=>{const [X,Y]=pos[n].p;
+    s+=ty==='router'?`<circle cx="${X}" cy="${Y}" r="20" class="trt"/><text x="${X}" y="${Y+6}" class="tic" fill="#fff">✛</text>`:
+       ty==='switch'?`<rect x="${X-27}" y="${Y-13}" width="54" height="26" rx="6" class="tsw"/><text x="${X}" y="${Y+5}" class="tic" fill="#fff" style="font-size:13px">⇄ ⇄</text>`:
+       `<rect x="${X-20}" y="${Y-19}" width="40" height="38" rx="9" class="thost"/><text x="${X}" y="${Y+7}" class="tic">${META[ty].icon}</text>`;
+    s+=`<text x="${X}" y="${Y+(ty==='switch'?28:35)}" class="tnm">${esc(n)}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" class="topo" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+}
+const cellQ=v=>v==='?'?'<td class="q">؟</td>':`<td>${v?esc(v):'—'}</td>`;
+function labDoc(L){
+  const idx=LABS.indexOf(L)+1;
+  return `<span class="tag">لاب ${idx} · ${esc(L.level)} · ${esc(L.tag)}</span><h3>🧪 ${esc(L.title)}</h3>${L.intro}
+    <h4 class="dh">🗺️ شكل الشبكة (Topology)</h4>${topoSvg(L.topo)}
+    <p class="note" style="font-size:12.5px">الخط المتصل = Straight-Through · الخط المنقّط = Crossover</p>
+    ${L.table?`<h4 class="dh">📋 جدول العناوين</h4><div style="overflow-x:auto"><table class="atbl"><tr><th>الجهاز</th><th>المنفذ</th><th>IP</th><th>Mask</th><th>Gateway</th></tr>${L.table.map(r=>`<tr><td><b>${esc(r[0])}</b></td>${r.slice(1).map(cellQ).join('')}</tr>`).join('')}</table></div>${L.table.some(r=>r.includes('?'))?'<p class="note" style="font-size:13px">الخانات اللي عليها <b>؟</b> لازم تحددها أنت.</p>':''}`:''}
+    <h4 class="dh">🛠️ المطلوب</h4>${L.steps}
+    <p class="lockn" style="margin-top:10px">لما تخلص اضغط <b>✔ تحقق</b> عشان تشوف نسبة الإنجاز (Completion) وأي بند ناقص.</p>`;
+}
+const P_=s=>pre(s);
+
+/* ================= PACKET TRACER LABS ================= */
+const E55='Ciscoenpa55',L55='Ciscolinepa55';
+const LABS=[
+/* ---------------- 1 ---------------- */
+{id:'p1',title:'توصيل جهازين مباشرة',level:'سهل',tag:'أنواع الكيبلات',
+ intro:`<p>أبسط شبكة: جهازين موصولين ببعض مباشرة بدون سويتش. هنا تتعلم أهم قاعدة في الكيبلات النحاسية:</p>
+ <ul><li><b>Straight-Through</b> ━ بين أجهزة <b>مختلفة</b>: كمبيوتر/راوتر ↔ سويتش.</li>
+ <li><b>Crossover</b> ┅ بين أجهزة <b>متشابهة</b>: كمبيوتر↔كمبيوتر، سويتش↔سويتش، راوتر↔راوتر، كمبيوتر↔راوتر.</li>
+ <li>لو استخدمت النوع الغلط، النقاط على الكيبل تصير 🔴 والاتصال ما يشتغل.</li></ul>`,
+ topo:{n:[['PC-A','pc',18,45],['PC-B','pc',82,45]],l:[['PC-A','Fa0','PC-B','Fa0','c']]},
+ table:[['PC-A','NIC','192.168.1.10',R24,''],['PC-B','NIC','192.168.1.20',R24,'']],
+ steps:`<ol><li>أضف جهازين كمبيوتر وسمّهم <b>PC-A</b> و <b>PC-B</b> بالضبط (من نافذة الإعدادات ← اسم الجهاز).</li>
+ <li>اختر أداة 🔌، اضغط PC-A ثم PC-B، واختر نوع الكيبل <b>Copper Cross-Over</b>.</li>
+ <li>أعطِ كل جهاز عنوانه من الجدول.</li><li>من PC-A ← موجه الأوامر: <span dir="ltr">ping 192.168.1.20</span></li></ol>`,
+ hint:`PC-A: 192.168.1.10 / 255.255.255.0 — PC-B: 192.168.1.20 / 255.255.255.0 — الكيبل Copper Cross-Over.`,
+ items:[
+  ['الأجهزة','PC-A موجود',()=>isDev('PC-A','pc')],['الأجهزة','PC-B موجود',()=>isDev('PC-B','pc')],
+  ['التوصيلات','PC-A ↔ PC-B بكيبل Crossover',()=>conn('PC-A','Fa0','PC-B','Fa0')],
+  ['PC-A','عنوان IP و Mask',()=>hostCfg('PC-A','192.168.1.10',R24)],
+  ['PC-B','عنوان IP و Mask',()=>hostCfg('PC-B','192.168.1.20',R24)],
+  ['الاتصال','PC-A يوصل لـ PC-B',()=>pingN('PC-A','192.168.1.20')]]},
+
+/* ---------------- 2 ---------------- */
+{id:'p2',title:'شبكة مكتب بسويتش',level:'سهل',tag:'Switch والمنافذ',
+ intro:`<p>المكتب فيه 3 موظفين. نربطهم بسويتش <b>2960</b> — فيه 24 منفذ <span dir="ltr">FastEthernet (F0/1-F0/24)</span> ومنفذين <span dir="ltr">Gigabit (G0/1-G0/2)</span>.</p>
+ <ul><li>في Packet Tracer التصحيح يتأكد إن كل كيبل على <b>المنفذ المطلوب بالضبط</b>.</li><li>الكمبيوتر ↔ السويتش = Straight-Through.</li></ul>`,
+ topo:{n:[['S1','switch',50,18],['PC-A','pc',15,80],['PC-B','pc',50,80],['PC-C','pc',85,80]],l:[['S1','F0/1','PC-A','Fa0'],['S1','F0/2','PC-B','Fa0'],['S1','F0/3','PC-C','Fa0']]},
+ table:[['PC-A','NIC','172.16.5.11',R24,''],['PC-B','NIC','172.16.5.12',R24,''],['PC-C','NIC','172.16.5.13',R24,'']],
+ steps:`<ol><li>أضف سويتش باسم <b>S1</b> و 3 أجهزة <b>PC-A</b>, <b>PC-B</b>, <b>PC-C</b>.</li><li>وصّل كل جهاز على منفذه في السويتش حسب الشكل (F0/1, F0/2, F0/3).</li><li>اضبط العناوين وجرّب ping بين الأجهزة.</li></ol>`,
+ hint:`عند التوصيل اختر منفذ السويتش من القائمة: PC-A ← FastEthernet0/1، PC-B ← FastEthernet0/2، PC-C ← FastEthernet0/3.`,
+ items:[
+  ['الأجهزة','S1 سويتش',()=>isDev('S1','switch')],['الأجهزة','PC-A',()=>isDev('PC-A','pc')],['الأجهزة','PC-B',()=>isDev('PC-B','pc')],['الأجهزة','PC-C',()=>isDev('PC-C','pc')],
+  ['التوصيلات','S1 F0/1 ↔ PC-A',()=>conn('S1','F0/1','PC-A','Fa0')],['التوصيلات','S1 F0/2 ↔ PC-B',()=>conn('S1','F0/2','PC-B','Fa0')],['التوصيلات','S1 F0/3 ↔ PC-C',()=>conn('S1','F0/3','PC-C','Fa0')],
+  ['العناوين','PC-A',()=>hostCfg('PC-A','172.16.5.11',R24)],['العناوين','PC-B',()=>hostCfg('PC-B','172.16.5.12',R24)],['العناوين','PC-C',()=>hostCfg('PC-C','172.16.5.13',R24)],
+  ['الاتصال','PC-A ↔ PC-B',()=>pingN('PC-A','172.16.5.12')],['الاتصال','PC-A ↔ PC-C',()=>pingN('PC-A','172.16.5.13')],['الاتصال','PC-B ↔ PC-C',()=>pingN('PC-B','172.16.5.13')]]},
+
+/* ---------------- 3 ---------------- */
+{id:'p3',title:'الإعداد الأساسي للسويتش',level:'سهل',tag:'Basic Switch Config',
+ intro:`<p>أول شي يسويه مهندس الشبكات مع أي سويتش جديد: <b>تأمينه وإعطاؤه عنوان إدارة</b>.</p>
+ <ul><li><b dir="ltr">line console 0</b> + <b dir="ltr">password</b> + <b dir="ltr">login</b>: كلمة سر لمن يتصل بكيبل الكونسول.</li>
+ <li><b dir="ltr">enable secret</b>: كلمة سر مشفّرة لوضع الصلاحيات #.</li>
+ <li><b dir="ltr">service password-encryption</b>: يشفّر باقي كلمات المرور في الإعدادات.</li>
+ <li><b dir="ltr">interface vlan 1</b> (SVI): عنوان IP للسويتش عشان نوصل له عن بعد.</li>
+ <li><b dir="ltr">copy running-config startup-config</b>: يحفظ الإعدادات في NVRAM.</li></ul>`,
+ topo:{n:[['S1','switch',50,20],['PC-A','pc',22,78],['PC-B','pc',78,78]],l:[['S1','F0/6','PC-A','Fa0'],['S1','F0/18','PC-B','Fa0']]},
+ table:[['S1','VLAN 1','192.168.1.2',R24,''],['PC-A','NIC','192.168.1.10',R24,''],['PC-B','NIC','192.168.1.11',R24,'']],
+ steps:`<ol><li>ابنِ الشبكة حسب الشكل (PC-A على F0/6، PC-B على F0/18).</li><li>اضبط S1 بالأوامر:</li></ol>`+P_(`Switch> enable
+Switch# configure terminal
+Switch(config)# hostname S1
+S1(config)# line console 0
+S1(config-line)# password letmein
+S1(config-line)# login
+S1(config-line)# exit
+S1(config)# enable secret itsasecret
+S1(config)# service password-encryption
+S1(config)# banner motd #Authorized access only#
+S1(config)# interface vlan 1
+S1(config-if)# ip address 192.168.1.2 255.255.255.0
+S1(config-if)# no shutdown
+S1(config-if)# end
+S1# copy running-config startup-config`)+`<ol start="3"><li>اضبط عناوين الكمبيوترات، وجرّب من PC-A: <span dir="ltr">ping 192.168.1.2</span></li></ol>`,
+ hint:`الأوامر كاملة في التعليمات 📘. انتبه: كلمات المرور حساسة للأحرف — letmein و itsasecret.`,
+ items:[
+  ['الأجهزة','S1',()=>isDev('S1','switch')],['الأجهزة','PC-A',()=>isDev('PC-A','pc')],['الأجهزة','PC-B',()=>isDev('PC-B','pc')],
+  ['التوصيلات','S1 F0/6 ↔ PC-A',()=>conn('S1','F0/6','PC-A','Fa0')],['التوصيلات','S1 F0/18 ↔ PC-B',()=>conn('S1','F0/18','PC-B','Fa0')],
+  ['S1','كلمة سر الكونسول letmein + login',()=>conPw('S1','letmein')],['S1','enable secret itsasecret',()=>secretIs('S1','itsasecret')],
+  ['S1','service password-encryption',()=>speN('S1')],['S1','banner motd',()=>bannerHas('S1','Authorized access only')],
+  ['S1','interface vlan 1 = 192.168.1.2 ومشغّل',()=>sviCfg('S1',1,'192.168.1.2',R24)],['S1','الإعدادات محفوظة',()=>savedN('S1')],
+  ['الكمبيوترات','PC-A',()=>hostCfg('PC-A','192.168.1.10',R24)],['الكمبيوترات','PC-B',()=>hostCfg('PC-B','192.168.1.11',R24)],
+  ['الاتصال','PC-A يوصل للسويتش S1',()=>pingN('PC-A','192.168.1.2')],['الاتصال','PC-B يوصل لـ PC-A',()=>pingN('PC-B','192.168.1.10')]]},
+
+/* ---------------- 4 ---------------- */
+{id:'p4',title:'الإعداد الأساسي للراوتر + Telnet',level:'سهل',tag:'Basic Router Config',
+ intro:`<p>الراوتر هو <b>بوابة</b> الشبكة. نأمّنه ونشغّل منفذه، ونجرب ندخل عليه عن بعد بـ <b>Telnet</b>.</p>
+ <ul><li><b dir="ltr">line vty 0 4</b> = خطوط الدخول عن بعد (Telnet/SSH). بدون password + login ما يقدر أحد يدخل.</li>
+ <li>منافذ الراوتر <b>مطفأة</b> افتراضياً — لازم <b dir="ltr">no shutdown</b>.</li>
+ <li><b dir="ltr">description</b> يوصف وش موصول على المنفذ.</li></ul>`,
+ topo:{n:[['R1','router',50,12],['S1','switch',50,48],['PC-A','pc',50,86]],l:[['R1','G0/0','S1','G0/1'],['S1','F0/1','PC-A','Fa0']]},
+ table:[['R1','G0/0','192.168.10.1',R24,''],['PC-A','NIC','192.168.10.10',R24,'?']],
+ steps:`<ol><li>ابنِ الشبكة: R1 G0/0 ↔ S1 G0/1، و PC-A على S1 F0/1.</li><li>اضبط R1:</li></ol>`+P_(`Router(config)# hostname R1
+R1(config)# enable secret ${E55}
+R1(config)# line console 0
+R1(config-line)# password ${L55}
+R1(config-line)# login
+R1(config-line)# line vty 0 4
+R1(config-line)# password ${L55}
+R1(config-line)# login
+R1(config-line)# exit
+R1(config)# banner motd #Unauthorized access is prohibited#
+R1(config)# interface g0/0
+R1(config-if)# description Connected to S1
+R1(config-if)# ip address 192.168.10.1 255.255.255.0
+R1(config-if)# no shutdown
+R1(config-if)# end
+R1# copy running-config startup-config`)+`<ol start="3"><li>اضبط PC-A (حدد البوابة بنفسك).</li><li>من موجه أوامر PC-A: <span dir="ltr">telnet 192.168.10.1</span> وادخل بكلمة السر.</li></ol>`,
+ hint:`بوابة PC-A = عنوان منفذ R1 في شبكته: 192.168.10.1. بعد ما تدخل بـ telnet تقدر تكتب enable وكلمة السر ${E55}.`,
+ items:[
+  ['الأجهزة','R1 راوتر',()=>isDev('R1','router')],['الأجهزة','S1 سويتش',()=>isDev('S1','switch')],['الأجهزة','PC-A',()=>isDev('PC-A','pc')],
+  ['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','S1 F0/1 ↔ PC-A',()=>conn('S1','F0/1','PC-A','Fa0')],
+  ['R1','enable secret',()=>secretIs('R1',E55)],['R1','كلمة سر الكونسول + login',()=>conPw('R1',L55)],['R1','كلمة سر vty + login',()=>vtyPw('R1',L55)],
+  ['R1','banner motd',()=>bannerHas('R1','Unauthorized')],['R1','description على G0/0',()=>ifDesc('R1','G0/0')],
+  ['R1','G0/0 = 192.168.10.1/24',()=>ifCfg('R1','G0/0','192.168.10.1',R24)],['R1','G0/0 شغّال (up)',()=>ifUp('R1','G0/0')],['R1','الإعدادات محفوظة',()=>savedN('R1')],
+  ['PC-A','IP + Gateway',()=>hostCfg('PC-A','192.168.10.10',R24,'192.168.10.1')],
+  ['الاتصال','PC-A يوصل لـ R1',()=>pingN('PC-A','192.168.10.1')],['الاتصال','PC-A دخل على R1 بـ Telnet',()=>evN('telnet:PC-A:R1','من موجه أوامر PC-A اكتب telnet 192.168.10.1 وادخل بكلمة السر.')]]},
+
+/* ---------------- 5 ---------------- */
+{id:'p5',title:'تنفيذ شبكة صغيرة',level:'متوسط',tag:'Implement a Small Network',
+ intro:`<p>نفس نشاط Packet Tracer <b>1.6.1</b>: تبني شبكة صغيرة <b>من الصفر</b> — راوتر واحد يربط شبكتين محليتين (LAN)، وفي كل شبكة سويتش وجهاز كمبيوتر.</p>
+ <ul><li>كل جهاز في الشبكة الأولى بوابته <span dir="ltr">10.10.10.1</span> (منفذ RTA G0/0)، وكل جهاز في الثانية بوابته <span dir="ltr">10.10.20.1</span> (G0/1).</li>
+ <li>السويتش يحتاج <b dir="ltr">ip default-gateway</b> عشان يرد على أجهزة من شبكة ثانية.</li>
+ <li>الأسماء لازم تطابق تماماً: <b>RTA, SW1, SW2, PC-1, PC-2</b>.</li></ul>`,
+ topo:{n:[['RTA','router',50,10],['SW1','switch',22,48],['SW2','switch',78,48],['PC-1','pc',22,88],['PC-2','pc',78,88]],l:[['RTA','G0/0','SW1','G0/1'],['RTA','G0/1','SW2','G0/1'],['SW1','F0/1','PC-1','Fa0'],['SW2','F0/1','PC-2','Fa0']]},
+ table:[['RTA','G0/0','10.10.10.1',R24,''],['RTA','G0/1','10.10.20.1',R24,''],['SW1','VLAN1','10.10.10.2',R24,'?'],['SW2','VLAN1','10.10.20.2',R24,'?'],['PC-1','NIC','?',R24,'?'],['PC-2','NIC','?',R24,'?']],
+ steps:`<p><b>الجزء 1:</b> أضف الأجهزة وسمّها، ووصّلها بـ Straight-Through حسب الشكل.</p><p><b>الجزء 2 — RTA:</b></p>`+P_(`enable
+conf t
+hostname RTA
+enable secret ${E55}
+line console 0
+ password ${L55}
+ login
+line vty 0 4
+ password ${L55}
+ login
+exit
+banner motd #Unauthorized Access is Prohibited#
+interface g0/0
+ description Connected to SW1
+ ip address 10.10.10.1 255.255.255.0
+ no shutdown
+interface g0/1
+ description Connected to SW2
+ ip address 10.10.20.1 255.255.255.0
+ no shutdown
+end
+copy running-config startup-config`)+`<p><b>SW1 و SW2:</b> hostname، enable secret ${E55}، كلمة سر ${L55} على line console 0 و line vty 0 15، عنوان interface vlan 1 + no shutdown، ip default-gateway، ثم الحفظ.</p>
+ <p><b>الكمبيوترات:</b> أي عنوان متاح في شبكة كل جهاز + البوابة الصحيحة. ثم ping من PC-1 إلى PC-2.</p>`,
+ hint:`SW1: ip default-gateway 10.10.10.1 — SW2: ip default-gateway 10.10.20.1 — PC-1: 10.10.10.10 بوابته 10.10.10.1 — PC-2: 10.10.20.10 بوابته 10.10.20.1.`,
+ items:[
+  ['الأجهزة','RTA',()=>isDev('RTA','router')],['الأجهزة','SW1',()=>isDev('SW1','switch')],['الأجهزة','SW2',()=>isDev('SW2','switch')],['الأجهزة','PC-1',()=>isDev('PC-1','pc')],['الأجهزة','PC-2',()=>isDev('PC-2','pc')],
+  ['التوصيلات','RTA G0/0 ↔ SW1 G0/1',()=>conn('RTA','G0/0','SW1','G0/1')],['التوصيلات','RTA G0/1 ↔ SW2 G0/1',()=>conn('RTA','G0/1','SW2','G0/1')],
+  ['التوصيلات','SW1 F0/1 ↔ PC-1',()=>conn('SW1','F0/1','PC-1','Fa0')],['التوصيلات','SW2 F0/1 ↔ PC-2',()=>conn('SW2','F0/1','PC-2','Fa0')],
+  ['RTA','enable secret',()=>secretIs('RTA',E55)],['RTA','line console',()=>conPw('RTA',L55)],['RTA','line vty',()=>vtyPw('RTA',L55)],['RTA','banner motd',()=>bannerHas('RTA','Unauthorized')],
+  ['RTA','G0/0 عنوان + وصف',()=>{const a=ifCfg('RTA','G0/0','10.10.10.1',R24);return a.ok?ifDesc('RTA','G0/0'):a}],['RTA','G0/0 up',()=>ifUp('RTA','G0/0')],
+  ['RTA','G0/1 عنوان + وصف',()=>{const a=ifCfg('RTA','G0/1','10.10.20.1',R24);return a.ok?ifDesc('RTA','G0/1'):a}],['RTA','G0/1 up',()=>ifUp('RTA','G0/1')],['RTA','محفوظ',()=>savedN('RTA')],
+  ['SW1','enable secret',()=>secretIs('SW1',E55)],['SW1','line console',()=>conPw('SW1',L55)],['SW1','line vty',()=>vtyPw('SW1',L55)],
+  ['SW1','VLAN1 = 10.10.10.2',()=>sviCfg('SW1',1,'10.10.10.2',R24)],['SW1','default-gateway',()=>swGw('SW1','10.10.10.1')],['SW1','محفوظ',()=>savedN('SW1')],
+  ['SW2','enable secret',()=>secretIs('SW2',E55)],['SW2','line console',()=>conPw('SW2',L55)],['SW2','line vty',()=>vtyPw('SW2',L55)],
+  ['SW2','VLAN1 = 10.10.20.2',()=>sviCfg('SW2',1,'10.10.20.2',R24)],['SW2','default-gateway',()=>swGw('SW2','10.10.20.1')],['SW2','محفوظ',()=>savedN('SW2')],
+  ['الكمبيوترات','PC-1 عنوان وبوابة',()=>hostIn('PC-1','10.10.10.0',R24,'10.10.10.1')],['الكمبيوترات','PC-2 عنوان وبوابة',()=>hostIn('PC-2','10.10.20.0',R24,'10.10.20.1')],
+  ['الاتصال','PC-1 يوصل لـ PC-2',()=>Dv('PC-2',d=>pingN('PC-1',d.ip))],['الاتصال','PC-1 يوصل لـ SW2',()=>pingN('PC-1','10.10.20.2')]]},
+
+/* ---------------- 6 ---------------- */
+{id:'p6',title:'تقسيم الشبكة (Subnetting)',level:'متوسط',tag:'Subnet /25',
+ intro:`<p>عندك شبكة وحدة <span dir="ltr">192.168.100.0/24</span> ولازم تقسمها إلى <b>شبكتين متساويتين</b>: LAN-A و LAN-B.</p>
+ <ul><li>نستلف بت واحد: <span dir="ltr">/24 → /25</span>، يعني Mask = <span dir="ltr">255.255.255.128</span>.</li>
+ <li>حجم كل شبكة = 256 ÷ 2 = <b>128</b> عنوان: الأولى من 0 إلى 127، والثانية من 128 إلى 255.</li>
+ <li>أول عنوان = عنوان الشبكة، آخر عنوان = Broadcast — ما ينعطون لأجهزة.</li>
+ <li><b>القاعدة:</b> الراوتر ياخذ <b>أول</b> عنوان صالح في كل شبكة، والكمبيوتر ياخذ <b>آخر</b> عنوان صالح.</li></ul>`,
+ topo:{n:[['R1','router',50,10],['S1','switch',22,48],['S2','switch',78,48],['PC-A','pc',22,88],['PC-B','pc',78,88]],l:[['R1','G0/0','S1','G0/1'],['R1','G0/1','S2','G0/1'],['S1','F0/1','PC-A','Fa0'],['S2','F0/1','PC-B','Fa0']]},
+ table:[['R1','G0/0 (LAN-A)','?','?',''],['R1','G0/1 (LAN-B)','?','?',''],['PC-A','NIC','?','?','?'],['PC-B','NIC','?','?','?']],
+ steps:`<ol><li>احسب الشبكتين: LAN-A = ؟ و LAN-B = ؟ (كل وحدة /25).</li><li>ابنِ الشبكة حسب الشكل.</li><li>اضبط منافذ R1 بأول عنوان صالح في كل شبكة (وشغّلها).</li><li>اضبط PC-A و PC-B بآخر عنوان صالح + البوابة.</li><li>تأكد إن PC-A يوصل لـ PC-B.</li></ol>`,
+ hint:`LAN-A: 192.168.100.0/25 → R1 G0/0 = 192.168.100.1، PC-A = 192.168.100.126 بوابته .1. LAN-B: 192.168.100.128/25 → R1 G0/1 = 192.168.100.129، PC-B = 192.168.100.254 بوابته .129. الـ Mask للكل 255.255.255.128.`,
+ items:[
+  ['الأجهزة','R1',()=>isDev('R1','router')],['الأجهزة','S1',()=>isDev('S1','switch')],['الأجهزة','S2',()=>isDev('S2','switch')],['الأجهزة','PC-A',()=>isDev('PC-A','pc')],['الأجهزة','PC-B',()=>isDev('PC-B','pc')],
+  ['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','R1 G0/1 ↔ S2 G0/1',()=>conn('R1','G0/1','S2','G0/1')],['التوصيلات','S1 F0/1 ↔ PC-A',()=>conn('S1','F0/1','PC-A','Fa0')],['التوصيلات','S2 F0/1 ↔ PC-B',()=>conn('S2','F0/1','PC-B','Fa0')],
+  ['R1','G0/0 أول عنوان في LAN-A',()=>ifCfg('R1','G0/0','192.168.100.1','255.255.255.128')],['R1','G0/1 أول عنوان في LAN-B',()=>ifCfg('R1','G0/1','192.168.100.129','255.255.255.128')],
+  ['R1','المنفذين up',()=>{const a=ifUp('R1','G0/0');return a.ok?ifUp('R1','G0/1'):a}],
+  ['PC-A','آخر عنوان في LAN-A + البوابة',()=>hostCfg('PC-A','192.168.100.126','255.255.255.128','192.168.100.1')],
+  ['PC-B','آخر عنوان في LAN-B + البوابة',()=>hostCfg('PC-B','192.168.100.254','255.255.255.128','192.168.100.129')],
+  ['الاتصال','PC-A يوصل لـ PC-B',()=>pingN('PC-A','192.168.100.254')]]},
+
+/* ---------------- 7 ---------------- */
+{id:'p7',title:'الوصول الآمن بـ SSH',level:'متوسط',tag:'SSH',
+ intro:`<p><b>Telnet</b> يرسل كل شي (حتى كلمة السر) كنص واضح 😱. البديل الآمن: <b>SSH</b> — كل الاتصال مشفّر.</p>
+ <ul><li>SSH يحتاج: اسم جهاز (hostname) + اسم نطاق (domain-name) + مفاتيح RSA + مستخدم (username).</li>
+ <li><b dir="ltr">login local</b> = الدخول باسم المستخدم وكلمة سره.</li><li><b dir="ltr">transport input ssh</b> = نمنع Telnet ونسمح بـ SSH فقط.</li></ul>`,
+ topo:{n:[['R1','router',50,12],['S1','switch',50,48],['PC-A','pc',50,86]],l:[['R1','G0/0','S1','G0/1'],['S1','F0/1','PC-A','Fa0']]},
+ table:[['R1','G0/0','192.168.1.1',R24,''],['PC-A','NIC','192.168.1.10',R24,'192.168.1.1']],
+ steps:`<ol><li>ابنِ الشبكة واضبط عنوان R1 G0/0 و PC-A.</li><li>اضبط SSH على R1:</li></ol>`+P_(`R1(config)# enable secret ${E55}
+R1(config)# service password-encryption
+R1(config)# ip domain-name ccna-lab.com
+R1(config)# username admin secret Adm1nPa55
+R1(config)# crypto key generate rsa
+How many bits in the modulus [512]: 1024
+R1(config)# ip ssh version 2
+R1(config)# line vty 0 4
+R1(config-line)# transport input ssh
+R1(config-line)# login local
+R1(config-line)# end
+R1# copy running-config startup-config`)+`<ol start="3"><li>من PC-A: <span dir="ltr">ssh -l admin 192.168.1.1</span> وادخل بكلمة السر <b>Adm1nPa55</b>.</li><li>جرّب <span dir="ltr">telnet 192.168.1.1</span> — المفروض يُرفض ✋.</li></ol>`,
+ hint:`لا تنسى hostname R1 قبل crypto key (ما يقبل اسم Router الافتراضي)، و ip domain-name قبلها بعد.`,
+ items:[
+  ['الأجهزة','R1',()=>isDev('R1','router')],['الأجهزة','S1',()=>isDev('S1','switch')],['الأجهزة','PC-A',()=>isDev('PC-A','pc')],
+  ['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','S1 F0/1 ↔ PC-A',()=>conn('S1','F0/1','PC-A','Fa0')],
+  ['R1','G0/0 عنوان + up',()=>{const a=ifCfg('R1','G0/0','192.168.1.1',R24);return a.ok?ifUp('R1','G0/0'):a}],
+  ['R1','enable secret',()=>secretIs('R1',E55)],['R1','service password-encryption',()=>speN('R1')],
+  ['R1','ip domain-name ccna-lab.com',()=>domainN('R1','ccna-lab.com')],['R1','username admin secret',()=>userN('R1','admin','Adm1nPa55')],
+  ['R1','مفاتيح RSA 1024 bit',()=>rsaN('R1',1024)],['R1','ip ssh version 2',()=>sshv2('R1')],['R1','vty: SSH فقط + login local',()=>vtySsh('R1')],['R1','محفوظ',()=>savedN('R1')],
+  ['PC-A','IP + Gateway',()=>hostCfg('PC-A','192.168.1.10',R24,'192.168.1.1')],
+  ['الاتصال','PC-A دخل على R1 بـ SSH',()=>evN('ssh:PC-A:R1','من PC-A اكتب ssh -l admin 192.168.1.1')]]},
+
+/* ---------------- 8 ---------------- */
+{id:'p8',title:'DHCP على الراوتر',level:'متوسط',tag:'DHCPv4',
+ intro:`<p>بدل ما تكتب العناوين يدوي، خلّ الراوتر يوزّعها بـ <b>DHCP</b>.</p>
+ <ul><li><b dir="ltr">ip dhcp excluded-address</b> يحجز عناوين (للراوتر والسيرفرات والطابعات) قبل إنشاء الـ Pool.</li>
+ <li>داخل الـ Pool: <b dir="ltr">network</b> و <b dir="ltr">default-router</b> و <b dir="ltr">dns-server</b>.</li><li>تأكد بـ <b dir="ltr">show ip dhcp binding</b>.</li></ul>`,
+ topo:{n:[['R1','router',50,10],['S1','switch',50,45],['PC1','pc',18,86],['PC2','pc',50,86],['PC3','pc',82,86]],l:[['R1','G0/0','S1','G0/1'],['S1','F0/1','PC1','Fa0'],['S1','F0/2','PC2','Fa0'],['S1','F0/3','PC3','Fa0']]},
+ table:[['R1','G0/0','192.168.10.1',R24,''],['PC1','NIC','DHCP','DHCP','DHCP'],['PC2','NIC','DHCP','DHCP','DHCP'],['PC3','NIC','DHCP','DHCP','DHCP']],
+ steps:`<ol><li>ابنِ الشبكة واضبط R1 G0/0 (وشغّله).</li><li>اضبط DHCP على R1:</li></ol>`+P_(`R1(config)# ip dhcp excluded-address 192.168.10.1 192.168.10.10
+R1(config)# ip dhcp pool LAN-POOL
+R1(dhcp-config)# network 192.168.10.0 255.255.255.0
+R1(dhcp-config)# default-router 192.168.10.1
+R1(dhcp-config)# dns-server 8.8.8.8`)+`<ol start="3"><li>خلّ كل كمبيوتر على <b>DHCP</b> (الإعدادات ← تلقائي).</li><li>من R1: <span dir="ltr">show ip dhcp binding</span></li></ol>`,
+ hint:`اسم الـ Pool لازم LAN-POOL بالضبط. لو جهاز ما أخذ عنوان، اضغط «طلب عنوان من DHCP» أو ipconfig /renew.`,
+ items:[
+  ['الأجهزة','R1',()=>isDev('R1','router')],['الأجهزة','S1',()=>isDev('S1','switch')],
+  ['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','S1 F0/1 ↔ PC1',()=>conn('S1','F0/1','PC1','Fa0')],['التوصيلات','S1 F0/2 ↔ PC2',()=>conn('S1','F0/2','PC2','Fa0')],['التوصيلات','S1 F0/3 ↔ PC3',()=>conn('S1','F0/3','PC3','Fa0')],
+  ['R1','G0/0 عنوان + up',()=>{const a=ifCfg('R1','G0/0','192.168.10.1',R24);return a.ok?ifUp('R1','G0/0'):a}],
+  ['R1','العناوين .1 - .10 محجوزة',()=>exclN('R1','192.168.10.1','192.168.10.10')],['R1','pool LAN-POOL + network',()=>poolN('R1','LAN-POOL','192.168.10.0',R24)],
+  ['R1','default-router',()=>poolOpt('R1','LAN-POOL','gw','192.168.10.1','default-router')],['R1','dns-server',()=>poolOpt('R1','LAN-POOL','dns','8.8.8.8','dns-server')],
+  ['الكمبيوترات','PC1 أخذ عنوان من R1',()=>leasedFrom('PC1','R1')],['الكمبيوترات','PC2 أخذ عنوان من R1',()=>leasedFrom('PC2','R1')],['الكمبيوترات','PC3 أخذ عنوان من R1',()=>leasedFrom('PC3','R1')],
+  ['الاتصال','PC1 يوصل لـ R1',()=>pingN('PC1','192.168.10.1')]]},
+
+/* ---------------- 9 ---------------- */
+{id:'p9',title:'سيرفر DNS وموقع ويب',level:'متوسط',tag:'DNS / HTTP',
+ intro:`<p>الشركة تبغى موقع داخلي <b dir="ltr">www.netlab.com</b>. السيرفر يشغّل خدمتين:</p>
+ <ul><li><b>HTTP</b>: يعرض صفحة الموقع.</li><li><b>DNS</b>: يحوّل الاسم إلى عنوان IP — سجل نوع A.</li>
+ <li>كل كمبيوتر لازم يعرف عنوان سيرفر الـ DNS.</li></ul>`,
+ topo:{n:[['S1','switch',50,45],['Web-Server','server',50,8],['PC-A','pc',22,86],['PC-B','pc',78,86]],l:[['S1','F0/24','Web-Server','Fa0'],['S1','F0/1','PC-A','Fa0'],['S1','F0/2','PC-B','Fa0']]},
+ table:[['Web-Server','NIC','192.168.1.254',R24,''],['PC-A','NIC','192.168.1.10',R24,''],['PC-B','NIC','192.168.1.11',R24,'']],
+ steps:`<ol><li>ابنِ الشبكة (السيرفر على F0/24) وسمّ السيرفر <b>Web-Server</b>.</li><li>Web-Server ← الخدمات: شغّل HTTP، وشغّل DNS وأضف سجل <span dir="ltr">www.netlab.com → 192.168.1.254</span>.</li>
+ <li>في PC-A و PC-B: DNS Server = <span dir="ltr">192.168.1.254</span>.</li><li>من المتصفح في كل كمبيوتر افتح <span dir="ltr">www.netlab.com</span>.</li></ol>`,
+ hint:`السيرفر عنوانه 192.168.1.254. سجل DNS: الاسم www.netlab.com والعنوان 192.168.1.254.`,
+ items:[
+  ['الأجهزة','Web-Server سيرفر',()=>isDev('Web-Server','server')],['الأجهزة','S1',()=>isDev('S1','switch')],['الأجهزة','PC-A',()=>isDev('PC-A','pc')],['الأجهزة','PC-B',()=>isDev('PC-B','pc')],
+  ['التوصيلات','S1 F0/24 ↔ Web-Server',()=>conn('S1','F0/24','Web-Server','Fa0')],['التوصيلات','S1 F0/1 ↔ PC-A',()=>conn('S1','F0/1','PC-A','Fa0')],['التوصيلات','S1 F0/2 ↔ PC-B',()=>conn('S1','F0/2','PC-B','Fa0')],
+  ['Web-Server','العنوان',()=>hostCfg('Web-Server','192.168.1.254',R24)],['Web-Server','خدمة HTTP شغالة',()=>srvSvc('Web-Server','http',s=>s.on?OK:no('شغّل HTTP.'))],
+  ['Web-Server','DNS: www.netlab.com',()=>srvSvc('Web-Server','dns',s=>!s.on?no('شغّل DNS.'):s.records.some(r=>r.name==='www.netlab.com'&&r.ip==='192.168.1.254')?OK:no('أضف السجل www.netlab.com → 192.168.1.254'))],
+  ['الكمبيوترات','PC-A عنوان + DNS',()=>{const a=hostCfg('PC-A','192.168.1.10',R24);return a.ok?Dv('PC-A',d=>d.dns==='192.168.1.254'?OK:no('DNS Server لازم 192.168.1.254')):a}],
+  ['الكمبيوترات','PC-B عنوان + DNS',()=>{const a=hostCfg('PC-B','192.168.1.11',R24);return a.ok?Dv('PC-B',d=>d.dns==='192.168.1.254'?OK:no('DNS Server لازم 192.168.1.254')):a}],
+  ['الاتصال','PC-A يفتح www.netlab.com',()=>webN('PC-A','www.netlab.com')],['الاتصال','PC-B يفتح www.netlab.com',()=>webN('PC-B','www.netlab.com')]]},
+
+/* ---------------- 10 ---------------- */
+{id:'p10',title:'إعداد VLANs',level:'متوسط',tag:'VLAN',
+ intro:`<p>المدرسة تبغى تفصل أجهزة <b>المعلمين</b> عن <b>الطلاب</b> على نفس السويتش، وتخصص VLAN لإدارة السويتش.</p>
+ <ul><li>VLAN 10 = <b>Faculty</b> · VLAN 20 = <b>Students</b> · VLAN 99 = <b>Management</b> (الأسماء حساسة للأحرف).</li>
+ <li>منافذ الأجهزة <b>access</b>، وكل منفذ في VLAN وحدة.</li><li>عنوان إدارة السويتش يكون على <b dir="ltr">interface vlan 99</b>.</li></ul>`,
+ topo:{n:[['S1','switch',50,15],['PC1','pc',12,82],['PC2','pc',37,82],['PC3','pc',63,82],['PC4','pc',88,82]],l:[['S1','F0/11','PC1','Fa0'],['S1','F0/12','PC2','Fa0'],['S1','F0/18','PC3','Fa0'],['S1','F0/19','PC4','Fa0']]},
+ table:[['S1','VLAN 99','172.17.99.11',R24,''],['PC1 (VLAN 10)','NIC','172.17.10.21',R24,''],['PC2 (VLAN 10)','NIC','172.17.10.22',R24,''],['PC3 (VLAN 20)','NIC','172.17.20.23',R24,''],['PC4 (VLAN 20)','NIC','172.17.20.24',R24,'']],
+ steps:P_(`S1(config)# vlan 10
+S1(config-vlan)# name Faculty
+S1(config-vlan)# vlan 20
+S1(config-vlan)# name Students
+S1(config-vlan)# vlan 99
+S1(config-vlan)# name Management
+S1(config-vlan)# exit
+S1(config)# interface f0/11
+S1(config-if)# switchport mode access
+S1(config-if)# switchport access vlan 10
+   ... (F0/12 → 10 ، F0/18 و F0/19 → 20)
+S1(config)# interface vlan 99
+S1(config-if)# ip address 172.17.99.11 255.255.255.0
+S1(config-if)# no shutdown
+S1# show vlan brief
+S1# copy running-config startup-config`),
+ hint:`F0/11 و F0/12 → VLAN 10. F0/18 و F0/19 → VLAN 20. الأسماء: Faculty و Students و Management.`,
+ items:[
+  ['الأجهزة','S1',()=>isDev('S1','switch')],
+  ['التوصيلات','F0/11 ↔ PC1',()=>conn('S1','F0/11','PC1','Fa0')],['التوصيلات','F0/12 ↔ PC2',()=>conn('S1','F0/12','PC2','Fa0')],['التوصيلات','F0/18 ↔ PC3',()=>conn('S1','F0/18','PC3','Fa0')],['التوصيلات','F0/19 ↔ PC4',()=>conn('S1','F0/19','PC4','Fa0')],
+  ['S1 - VLANs','VLAN 10 Faculty',()=>vlanNm('S1',10,'Faculty')],['S1 - VLANs','VLAN 20 Students',()=>vlanNm('S1',20,'Students')],['S1 - VLANs','VLAN 99 Management',()=>vlanNm('S1',99,'Management')],
+  ['S1 - المنافذ','F0/11 → VLAN 10',()=>accessP('S1','F0/11',10)],['S1 - المنافذ','F0/12 → VLAN 10',()=>accessP('S1','F0/12',10)],['S1 - المنافذ','F0/18 → VLAN 20',()=>accessP('S1','F0/18',20)],['S1 - المنافذ','F0/19 → VLAN 20',()=>accessP('S1','F0/19',20)],
+  ['S1','interface vlan 99',()=>sviCfg('S1',99,'172.17.99.11',R24)],['S1','محفوظ',()=>savedN('S1')],
+  ['الكمبيوترات','PC1',()=>hostCfg('PC1','172.17.10.21',R24)],['الكمبيوترات','PC2',()=>hostCfg('PC2','172.17.10.22',R24)],['الكمبيوترات','PC3',()=>hostCfg('PC3','172.17.20.23',R24)],['الكمبيوترات','PC4',()=>hostCfg('PC4','172.17.20.24',R24)],
+  ['الاتصال','PC1 ↔ PC2 (VLAN 10)',()=>pingN('PC1','172.17.10.22')],['الاتصال','PC3 ↔ PC4 (VLAN 20)',()=>pingN('PC3','172.17.20.24')]]},
+
+/* ---------------- 11 ---------------- */
+{id:'p11',title:'Trunk بين سويتشين',level:'متقدم',tag:'802.1Q Trunk',
+ intro:`<p>الـ VLANs موزعة على <b>سويتشين</b>. كيف يوصل PC1 (VLAN 10 على S1) لـ PC3 (VLAN 10 على S2)؟ بكيبل <b>Trunk</b> يحمل كل الـ VLANs.</p>
+ <ul><li><b dir="ltr">switchport mode trunk</b> على المنفذين G0/1 في الطرفين.</li><li>الـ VLAN لازم تكون موجودة في <b>السويتشين</b>.</li>
+ <li>سويتش ↔ سويتش = كيبل <b>Crossover</b>.</li></ul>`,
+ topo:{n:[['S1','switch',28,22],['S2','switch',72,22],['PC1','pc',12,82],['PC2','pc',40,82],['PC3','pc',60,82],['PC4','pc',88,82]],l:[['S1','G0/1','S2','G0/1','c'],['S1','F0/11','PC1','Fa0'],['S1','F0/18','PC2','Fa0'],['S2','F0/11','PC3','Fa0'],['S2','F0/18','PC4','Fa0']]},
+ table:[['PC1 (VLAN 10)','NIC','172.17.10.21',R24,''],['PC2 (VLAN 20)','NIC','172.17.20.22',R24,''],['PC3 (VLAN 10)','NIC','172.17.10.23',R24,''],['PC4 (VLAN 20)','NIC','172.17.20.24',R24,'']],
+ steps:`<ol><li>في <b>السويتشين</b>: vlan 10 name Faculty، vlan 20 name Students.</li><li>F0/11 → access vlan 10، F0/18 → access vlan 20.</li><li>وصّل S1 G0/1 ↔ S2 G0/1 بـ Crossover، واضبط الطرفين:</li></ol>`+P_(`S1(config)# interface g0/1
+S1(config-if)# switchport mode trunk
+S1# show interfaces trunk`)+`<ol start="4"><li>جرّب ping من PC1 إلى PC3، ومن PC2 إلى PC4.</li></ol>`,
+ hint:`نفس الأوامر على S1 و S2. لو الـ ping فشل: تأكد إن الـ VLAN موجودة في السويتش الثاني (show vlan brief) وإن G0/1 trunk في الطرفين.`,
+ items:[
+  ['الأجهزة','S1',()=>isDev('S1','switch')],['الأجهزة','S2',()=>isDev('S2','switch')],
+  ['التوصيلات','S1 G0/1 ↔ S2 G0/1 (Crossover)',()=>conn('S1','G0/1','S2','G0/1')],['التوصيلات','S1 F0/11 ↔ PC1',()=>conn('S1','F0/11','PC1','Fa0')],['التوصيلات','S1 F0/18 ↔ PC2',()=>conn('S1','F0/18','PC2','Fa0')],['التوصيلات','S2 F0/11 ↔ PC3',()=>conn('S2','F0/11','PC3','Fa0')],['التوصيلات','S2 F0/18 ↔ PC4',()=>conn('S2','F0/18','PC4','Fa0')],
+  ['S1','VLAN 10 و 20',()=>{const a=vlanNm('S1',10,'Faculty');return a.ok?vlanNm('S1',20,'Students'):a}],['S1','F0/11 و F0/18 access',()=>{const a=accessP('S1','F0/11',10);return a.ok?accessP('S1','F0/18',20):a}],['S1','G0/1 trunk',()=>trunkP('S1','G0/1')],
+  ['S2','VLAN 10 و 20',()=>{const a=vlanNm('S2',10,'Faculty');return a.ok?vlanNm('S2',20,'Students'):a}],['S2','F0/11 و F0/18 access',()=>{const a=accessP('S2','F0/11',10);return a.ok?accessP('S2','F0/18',20):a}],['S2','G0/1 trunk',()=>trunkP('S2','G0/1')],
+  ['الكمبيوترات','PC1',()=>hostCfg('PC1','172.17.10.21',R24)],['الكمبيوترات','PC2',()=>hostCfg('PC2','172.17.20.22',R24)],['الكمبيوترات','PC3',()=>hostCfg('PC3','172.17.10.23',R24)],['الكمبيوترات','PC4',()=>hostCfg('PC4','172.17.20.24',R24)],
+  ['الاتصال','PC1 ↔ PC3 عبر الـ Trunk',()=>pingN('PC1','172.17.10.23')],['الاتصال','PC2 ↔ PC4 عبر الـ Trunk',()=>pingN('PC2','172.17.20.24')]]},
+
+/* ---------------- 12 ---------------- */
+{id:'p12',title:'التوجيه بين الـ VLANs',level:'متقدم',tag:'Router-on-a-Stick',
+ intro:`<p>الـ VLANs معزولة، وعشان تتواصل نحتاج <b>راوتر</b>. بدل كيبل لكل VLAN، نستخدم <b>كيبل واحد Trunk</b> و <b>Subinterfaces</b>.</p>
+ <ul><li>منفذ السويتش للراوتر: <b dir="ltr">switchport mode trunk</b>.</li><li>في الراوتر: <span dir="ltr">G0/0.10</span> لـ VLAN 10 و <span dir="ltr">G0/0.20</span> لـ VLAN 20.</li>
+ <li><b dir="ltr">encapsulation dot1Q</b> لازم <b>قبل</b> ip address. والمنفذ الأساسي G0/0 لازم no shutdown.</li></ul>`,
+ topo:{n:[['R1','router',50,10],['S1','switch',50,46],['PC1','pc',22,86],['PC2','pc',78,86]],l:[['R1','G0/0','S1','G0/1'],['S1','F0/11','PC1','Fa0'],['S1','F0/18','PC2','Fa0']]},
+ table:[['R1','G0/0.10','192.168.10.1',R24,''],['R1','G0/0.20','192.168.20.1',R24,''],['PC1 (VLAN 10)','NIC','192.168.10.10',R24,'?'],['PC2 (VLAN 20)','NIC','192.168.20.10',R24,'?']],
+ steps:`<ol><li>S1: أنشئ vlan 10 و vlan 20، و F0/11 → 10، F0/18 → 20، و G0/1 → trunk.</li><li>R1:</li></ol>`+P_(`R1(config)# interface g0/0
+R1(config-if)# no shutdown
+R1(config-if)# interface g0/0.10
+R1(config-subif)# encapsulation dot1Q 10
+R1(config-subif)# ip address 192.168.10.1 255.255.255.0
+R1(config-subif)# interface g0/0.20
+R1(config-subif)# encapsulation dot1Q 20
+R1(config-subif)# ip address 192.168.20.1 255.255.255.0
+R1(config-subif)# end
+R1# show ip interface brief`)+`<ol start="3"><li>اضبط الكمبيوترات (البوابة = subinterface الـ VLAN حقتها)، وجرّب PC1 → PC2.</li></ol>`,
+ hint:`PC1 بوابته 192.168.10.1، PC2 بوابته 192.168.20.1. احفظ R1 بـ write memory.`,
+ items:[
+  ['الأجهزة','R1',()=>isDev('R1','router')],['الأجهزة','S1',()=>isDev('S1','switch')],
+  ['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','S1 F0/11 ↔ PC1',()=>conn('S1','F0/11','PC1','Fa0')],['التوصيلات','S1 F0/18 ↔ PC2',()=>conn('S1','F0/18','PC2','Fa0')],
+  ['S1','VLAN 10 و 20 موجودة',()=>{const a=vlanEx('S1',10);return a.ok?vlanEx('S1',20):a}],['S1','F0/11 → VLAN 10',()=>accessP('S1','F0/11',10)],['S1','F0/18 → VLAN 20',()=>accessP('S1','F0/18',20)],['S1','G0/1 trunk',()=>trunkP('S1','G0/1')],
+  ['R1','G0/0 up',()=>ifUp('R1','G0/0')],['R1','G0/0.10',()=>subCfg('R1','G0/0.10',10,'192.168.10.1',R24)],['R1','G0/0.20',()=>subCfg('R1','G0/0.20',20,'192.168.20.1',R24)],['R1','محفوظ',()=>savedN('R1')],
+  ['الكمبيوترات','PC1 + بوابة',()=>hostCfg('PC1','192.168.10.10',R24,'192.168.10.1')],['الكمبيوترات','PC2 + بوابة',()=>hostCfg('PC2','192.168.20.10',R24,'192.168.20.1')],
+  ['الاتصال','PC1 (VLAN 10) يوصل لـ PC2 (VLAN 20)',()=>pingN('PC1','192.168.20.10')]]},
+
+/* ---------------- 13 ---------------- */
+{id:'p13',title:'التوجيه الثابت والافتراضي',level:'متقدم',tag:'Static & Default Routes',
+ intro:`<p>3 راوترات في سلسلة: فرع ↔ مركز ↔ فرع. كل راوتر يعرف بس شبكاته المباشرة.</p>
+ <ul><li><b>Static Route</b>: <span dir="ltr">ip route &lt;شبكة&gt; &lt;mask&gt; &lt;next-hop&gt;</span></li>
+ <li><b>Default Route</b>: <span dir="ltr">ip route 0.0.0.0 0.0.0.0 &lt;next-hop&gt;</span> = "أي شي ما أعرفه أرسله هنا" — مثالي للفروع.</li>
+ <li>روابط الراوترات <span dir="ltr">/30</span> (عنوانين بس)، والكيبل بين راوترين <b>Crossover</b>.</li></ul>`,
+ topo:{n:[['R1','router',15,18],['R2','router',50,18],['R3','router',85,18],['S1','switch',15,55],['S3','switch',85,55],['PC-A','pc',15,90],['PC-C','pc',85,90]],
+   l:[['R1','G0/1','R2','G0/0','c'],['R2','G0/1','R3','G0/0','c'],['R1','G0/0','S1','G0/1'],['R3','G0/1','S3','G0/1'],['S1','F0/1','PC-A','Fa0'],['S3','F0/1','PC-C','Fa0']]},
+ table:[['R1','G0/0','192.168.1.1',R24,''],['R1','G0/1','10.1.1.1',R30,''],['R2','G0/0','10.1.1.2',R30,''],['R2','G0/1','10.2.2.1',R30,''],['R3','G0/0','10.2.2.2',R30,''],['R3','G0/1','192.168.3.1',R24,''],['PC-A','NIC','192.168.1.10',R24,'192.168.1.1'],['PC-C','NIC','192.168.3.10',R24,'192.168.3.1']],
+ steps:`<ol><li>ابنِ الشبكة واضبط كل المنافذ حسب الجدول (لا تنسى no shutdown).</li><li>R1 و R3 (فروع): <b>Default Route</b> باتجاه R2.</li><li>R2 (المركز): <b>Static Route</b> لكل شبكة فرع.</li></ol>`+P_(`R1(config)# ip route 0.0.0.0 0.0.0.0 10.1.1.2
+R3(config)# ip route 0.0.0.0 0.0.0.0 10.2.2.1
+R2(config)# ip route 192.168.1.0 255.255.255.0 10.1.1.1
+R2(config)# ip route 192.168.3.0 255.255.255.0 10.2.2.2
+R2# show ip route`),
+ hint:`لو الـ ping فشل: من كل راوتر جرّب ping للراوتر اللي جنبه، وشيك show ip route — لازم تشوف S* للـ default route.`,
+ items:[
+  ['الأجهزة','R1, R2, R3',()=>{for(const n of ['R1','R2','R3']){const a=isDev(n,'router');if(!a.ok)return a}return OK}],['الأجهزة','S1, S3',()=>{const a=isDev('S1','switch');return a.ok?isDev('S3','switch'):a}],
+  ['التوصيلات','R1 G0/1 ↔ R2 G0/0',()=>conn('R1','G0/1','R2','G0/0')],['التوصيلات','R2 G0/1 ↔ R3 G0/0',()=>conn('R2','G0/1','R3','G0/0')],['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','R3 G0/1 ↔ S3 G0/1',()=>conn('R3','G0/1','S3','G0/1')],
+  ['التوصيلات','PC-A و PC-C',()=>{const a=conn('S1','F0/1','PC-A','Fa0');return a.ok?conn('S3','F0/1','PC-C','Fa0'):a}],
+  ['R1','عناوين المنافذ',()=>{const a=ifCfg('R1','G0/0','192.168.1.1',R24);return a.ok?ifCfg('R1','G0/1','10.1.1.1',R30):a}],['R1','Default Route',()=>routeN('R1','0.0.0.0','0.0.0.0','10.1.1.2')],
+  ['R2','عناوين المنافذ',()=>{const a=ifCfg('R2','G0/0','10.1.1.2',R30);return a.ok?ifCfg('R2','G0/1','10.2.2.1',R30):a}],['R2','Route لـ 192.168.1.0',()=>routeN('R2','192.168.1.0',R24,'10.1.1.1')],['R2','Route لـ 192.168.3.0',()=>routeN('R2','192.168.3.0',R24,'10.2.2.2')],
+  ['R3','عناوين المنافذ',()=>{const a=ifCfg('R3','G0/0','10.2.2.2',R30);return a.ok?ifCfg('R3','G0/1','192.168.3.1',R24):a}],['R3','Default Route',()=>routeN('R3','0.0.0.0','0.0.0.0','10.2.2.1')],
+  ['الكمبيوترات','PC-A',()=>hostCfg('PC-A','192.168.1.10',R24,'192.168.1.1')],['الكمبيوترات','PC-C',()=>hostCfg('PC-C','192.168.3.10',R24,'192.168.3.1')],
+  ['الاتصال','PC-A يوصل لـ R2',()=>pingN('PC-A','10.2.2.1')],['الاتصال','PC-A يوصل لـ PC-C',()=>pingN('PC-A','192.168.3.10')]]},
+
+/* ---------------- 14 ---------------- */
+{id:'p14',title:'سيرفر DHCP مركزي',level:'متقدم',tag:'DHCP Relay',
+ intro:`<p>سيرفر DHCP في غرفة السيرفرات (شبكة ثانية). المشكلة: طلب DHCP <b>Broadcast</b> وما يعدّي الراوتر.</p>
+ <ul><li>الحل: <b dir="ltr">ip helper-address</b> على منفذ الراوتر اللي في شبكة الموظفين — يمرّر الطلب للسيرفر (DHCP Relay).</li>
+ <li>بداية العناوين في السيرفر لازم من شبكة الموظفين، والـ Gateway = منفذ الراوتر عندهم.</li><li>السيرفر نفسه يحتاج Default Gateway.</li></ul>`,
+ topo:{n:[['R1','router',50,10],['S1','switch',24,48],['S2','switch',76,48],['PC1','pc',10,88],['PC2','pc',38,88],['DHCP-Server','server',76,88]],l:[['R1','G0/0','S1','G0/1'],['R1','G0/1','S2','G0/1'],['S1','F0/1','PC1','Fa0'],['S1','F0/2','PC2','Fa0'],['S2','F0/1','DHCP-Server','Fa0']]},
+ table:[['R1','G0/0','192.168.1.1',R24,''],['R1','G0/1','192.168.100.1',R24,''],['DHCP-Server','NIC','192.168.100.10',R24,'?'],['PC1','NIC','DHCP','DHCP','DHCP'],['PC2','NIC','DHCP','DHCP','DHCP']],
+ steps:`<ol><li>ابنِ الشبكة واضبط منافذ R1.</li><li>DHCP-Server: عنوانه وبوابته، وخدمة DHCP: Start IP <span dir="ltr">192.168.1.11</span>، Gateway <span dir="ltr">192.168.1.1</span>.</li><li>R1:</li></ol>`+P_(`R1(config)# interface g0/0
+R1(config-if)# ip helper-address 192.168.100.10`)+`<ol start="4"><li>خلّ PC1 و PC2 على DHCP.</li></ol>`,
+ hint:`بوابة DHCP-Server = 192.168.100.1. لو الأجهزة ما أخذت عناوين، تأكد من helper-address على G0/0 (منفذ الموظفين) مو G0/1.`,
+ items:[
+  ['الأجهزة','R1',()=>isDev('R1','router')],['الأجهزة','DHCP-Server',()=>isDev('DHCP-Server','server')],
+  ['التوصيلات','R1 ↔ S1 و S2',()=>{const a=conn('R1','G0/0','S1','G0/1');return a.ok?conn('R1','G0/1','S2','G0/1'):a}],['التوصيلات','PC1 و PC2 على S1',()=>{const a=conn('S1','F0/1','PC1','Fa0');return a.ok?conn('S1','F0/2','PC2','Fa0'):a}],['التوصيلات','S2 F0/1 ↔ DHCP-Server',()=>conn('S2','F0/1','DHCP-Server','Fa0')],
+  ['R1','G0/0 و G0/1 عناوين + up',()=>{for(const [p,ip] of [['G0/0','192.168.1.1'],['G0/1','192.168.100.1']]){let a=ifCfg('R1',p,ip,R24);if(a.ok)a=ifUp('R1',p);if(!a.ok)return a}return OK}],
+  ['R1','ip helper-address على G0/0',()=>helperN('R1','G0/0','192.168.100.10')],
+  ['DHCP-Server','العنوان والبوابة',()=>hostCfg('DHCP-Server','192.168.100.10',R24,'192.168.100.1')],
+  ['DHCP-Server','خدمة DHCP لشبكة الموظفين',()=>srvSvc('DHCP-Server','dhcp',s=>!s.on?no('شغّل خدمة DHCP.'):!sameNet(s.start,'192.168.1.0',R24)?no('Start IP لازم من 192.168.1.0'):s.gw!=='192.168.1.1'?no('Gateway في الـ DHCP لازم 192.168.1.1'):OK)],
+  ['الكمبيوترات','PC1 أخذ عنوان من السيرفر',()=>leasedFrom('PC1','DHCP-Server')],['الكمبيوترات','PC2 أخذ عنوان من السيرفر',()=>leasedFrom('PC2','DHCP-Server')],
+  ['الاتصال','PC1 يوصل للسيرفر',()=>pingN('PC1','192.168.100.10')]]},
+
+/* ---------------- 15 ---------------- */
+{id:'p15',title:'إصلاح الأعطال',level:'متقدم',tag:'🔧 Troubleshooting',
+ intro:`<p>استلمت شبكة جاهزة (نفس شبكة لاب «تنفيذ شبكة صغيرة») لكن فيها <b>5 أعطال</b> 😬. المستخدمين يشتكون إن ما فيه اتصال بين الشبكتين.</p>
+ <ul><li>ابدأ من الطبقة الأولى: الكيبلات ونوعها والأضواء 🔴.</li><li>بعدين المنافذ: <span dir="ltr">show ip interface brief</span>.</li>
+ <li>بعدين الـ VLAN والعناوين والبوابات: <span dir="ltr">show vlan brief</span> و <span dir="ltr">ipconfig</span> و <span dir="ltr">show running-config</span>.</li>
+ <li>كلمة سر enable لكل الأجهزة: <b>${E55}</b> وكلمة سر الكونسول: <b>${L55}</b>.</li><li>لا تنسى تحفظ الإعدادات بعد الإصلاح.</li></ul>`,
+ topo:{n:[['RTA','router',50,10],['SW1','switch',22,48],['SW2','switch',78,48],['PC-1','pc',22,88],['PC-2','pc',78,88]],l:[['RTA','G0/0','SW1','G0/1'],['RTA','G0/1','SW2','G0/1'],['SW1','F0/1','PC-1','Fa0'],['SW2','F0/1','PC-2','Fa0']]},
+ table:[['RTA','G0/0','10.10.10.1',R24,''],['RTA','G0/1','10.10.20.1',R24,''],['SW1','VLAN1','10.10.10.2',R24,'10.10.10.1'],['SW2','VLAN1','10.10.20.2',R24,'10.10.20.1'],['PC-1','NIC','10.10.10.10',R24,'10.10.10.1'],['PC-2','NIC','10.10.20.10',R24,'10.10.20.1']],
+ steps:`<p>الشبكة المفروض تشتغل حسب الجدول. لقِ الأعطال الخمسة وصلّحها، بعدين احفظ إعدادات RTA و SW1 و SW2.</p><p class="note">إذا احتجت تبدّل كيبل: احذفه بأداة ❌ ووصّله من جديد.</p>`,
+ hint:`(1) كيبل RTA–SW1 نوعه Crossover — لازم Straight. (2) RTA G0/1 مطفأ. (3) SW1 F0/1 في VLAN 5 — رجّعه VLAN 1. (4) بوابة PC-2 غلط. (5) SW2 ما عنده ip default-gateway.`,
+ setup(B){
+  B.dev('RTA','router',50,10);B.dev('SW1','switch',22,48);B.dev('SW2','switch',78,48);
+  B.dev('PC-1','pc',22,88,{ip:'10.10.10.10',gw:'10.10.10.1'});B.dev('PC-2','pc',78,88,{ip:'10.10.20.10',gw:'10.10.20.254'});
+  B.link('RTA','G0/0','SW1','G0/1','cross');B.link('RTA','G0/1','SW2','G0/1');B.link('SW1','F0/1','PC-1','Fa0');B.link('SW2','F0/1','PC-2','Fa0');
+  const base=n=>['enable','conf t',`hostname ${n}`,`enable secret ${E55}`,'line console 0',`password ${L55}`,'login','line vty 0 4',`password ${L55}`,'login','exit','banner motd #Unauthorized Access is Prohibited#'];
+  B.cli('RTA',[...base('RTA'),'interface g0/0','description Connected to SW1','ip address 10.10.10.1 255.255.255.0','no shutdown','interface g0/1','description Connected to SW2','ip address 10.10.20.1 255.255.255.0','end','write']);
+  B.cli('SW1',[...base('SW1'),'interface vlan 1','ip address 10.10.10.2 255.255.255.0','no shutdown','exit','ip default-gateway 10.10.10.1','vlan 5','exit','interface f0/1','switchport access vlan 5','end','write']);
+  B.cli('SW2',[...base('SW2'),'interface vlan 1','ip address 10.10.20.2 255.255.255.0','no shutdown','end','write']);
+ },
+ items:[
+  ['الاتصال','PC-1 يوصل لبوابته RTA',()=>pingN('PC-1','10.10.10.1')],['الاتصال','PC-1 يوصل لـ SW1',()=>pingN('PC-1','10.10.10.2')],
+  ['الاتصال','PC-2 يوصل لبوابته RTA',()=>pingN('PC-2','10.10.20.1')],['الاتصال','PC-1 يوصل لـ PC-2',()=>pingN('PC-1','10.10.20.10')],
+  ['الاتصال','PC-1 يوصل لـ SW2',()=>pingN('PC-1','10.10.20.2')],['الاتصال','PC-2 يوصل لـ SW1',()=>pingN('PC-2','10.10.10.2')],
+  ['الحفظ','RTA محفوظ',()=>savedN('RTA')],['الحفظ','SW1 محفوظ',()=>savedN('SW1')],['الحفظ','SW2 محفوظ',()=>savedN('SW2')]]},
+
+/* ---------------- 16 ---------------- */
+{id:'p16',title:'تقييم المهارات الشامل',level:'احترافي',tag:'🏆 Skills Assessment',
+ intro:`<p>🏆 الاختبار النهائي — شبكة شركة كاملة تجمع كل اللي تعلمته: VLANs و Trunk و Router-on-a-Stick و DHCP و SSH و Static/Default Routing و DNS/HTTP وتأمين الأجهزة.</p>
+ <ul><li><b>المبنى:</b> S1 عليه VLAN 10 <b>Staff</b> و VLAN 20 <b>Guest</b> و VLAN 99 <b>Mgmt</b>.</li>
+ <li><b>R1:</b> Router-on-a-Stick للـ VLANs الثلاث + DHCP لـ Staff و Guest + SSH + Default Route لـ R2.</li>
+ <li><b>R2:</b> يربط غرفة السيرفرات <span dir="ltr">172.16.1.0/24</span> + Static Routes للمبنى.</li>
+ <li><b>كل الراوترات والسويتشات:</b> enable secret ${E55} + كونسول ${L55} + banner + حفظ.</li></ul>`,
+ topo:{n:[['R1','router',30,10],['R2','router',72,10],['S1','switch',30,45],['S2','switch',72,45],['Staff-1','pc',8,86],['Staff-2','pc',30,86],['Guest-1','laptop',52,86],['Corp-Server','server',72,86]],
+   l:[['R1','G0/1','R2','G0/0','c'],['R1','G0/0','S1','G0/1'],['R2','G0/1','S2','G0/1'],['S1','F0/1','Staff-1','Fa0'],['S1','F0/2','Staff-2','Fa0'],['S1','F0/11','Guest-1','Fa0'],['S2','F0/1','Corp-Server','Fa0']]},
+ table:[['R1','G0/0.10','192.168.10.1',R24,''],['R1','G0/0.20','192.168.20.1',R24,''],['R1','G0/0.99','192.168.99.1',R24,''],['R1','G0/1','10.0.0.1',R30,''],['R2','G0/0','10.0.0.2',R30,''],['R2','G0/1','172.16.1.1',R24,''],
+   ['S1','VLAN 99','192.168.99.2',R24,'?'],['Corp-Server','NIC','172.16.1.10',R24,'?'],['Staff-1/2 · Guest-1','NIC','DHCP','DHCP','DHCP']],
+ steps:`<ol>
+ <li><b>S1:</b> VLANs (10 Staff، 20 Guest، 99 Mgmt)، F0/1-F0/2 → VLAN 10، F0/11 → VLAN 20، G0/1 → trunk، interface vlan 99 + ip default-gateway.</li>
+ <li><b>R1:</b> Subinterfaces G0/0.10 و .20 و .99 · DHCP: احجز .1 - .10 في الشبكتين، pool <b>STAFF</b> و pool <b>GUEST</b> (default-router + dns-server 172.16.1.10) · G0/1 + Default Route لـ 10.0.0.2.</li>
+ <li><b>R1 SSH:</b> ip domain-name corp.local · username admin secret Adm1nPa55 · crypto key 1024 · ip ssh version 2 · vty: transport input ssh + login local.</li>
+ <li><b>R2:</b> المنافذ + Static Routes لـ 192.168.10.0 و 20.0 و 99.0 عبر 10.0.0.1.</li>
+ <li><b>Corp-Server:</b> عنوانه وبوابته، DNS: <span dir="ltr">www.corp.local → 172.16.1.10</span>، و HTTP.</li>
+ <li><b>الأمان والحفظ:</b> على R1 و R2 و S1 و S2: enable secret ${E55}، line console 0 password ${L55} + login، banner motd فيه كلمة Authorized، ثم copy run start.</li>
+ <li><b>الاختبار:</b> الأجهزة على DHCP، Staff-1 يفتح www.corp.local، و Staff-1 يدخل R1 بـ <span dir="ltr">ssh -l admin 192.168.10.1</span>.</li></ol>`,
+ hint:P_(`R1: int g0/0 → no sh
+ int g0/0.10 → enc dot1q 10 → ip add 192.168.10.1 255.255.255.0  (و .20 و .99)
+ ip dhcp excluded-address 192.168.10.1 192.168.10.10 (ونفسها لـ 20)
+ ip dhcp pool STAFF → network 192.168.10.0 255.255.255.0 → default-router 192.168.10.1 → dns-server 172.16.1.10
+ int g0/1 → ip add 10.0.0.1 255.255.255.252 → no sh
+ ip route 0.0.0.0 0.0.0.0 10.0.0.2
+R2: ip route 192.168.10.0 255.255.255.0 10.0.0.1 (و 20.0 و 99.0)
+S1: ip default-gateway 192.168.99.1 · Corp-Server gateway 172.16.1.1`),
+ items:[
+  ['الأجهزة','كل الأجهزة بأسمائها',()=>{for(const [n,t] of [['R1','router'],['R2','router'],['S1','switch'],['S2','switch'],['Staff-1','pc'],['Staff-2','pc'],['Guest-1','laptop'],['Corp-Server','server']]){const a=isDev(n,t);if(!a.ok)return a}return OK}],
+  ['التوصيلات','R1 G0/1 ↔ R2 G0/0',()=>conn('R1','G0/1','R2','G0/0')],['التوصيلات','R1 G0/0 ↔ S1 G0/1',()=>conn('R1','G0/0','S1','G0/1')],['التوصيلات','R2 G0/1 ↔ S2 G0/1',()=>conn('R2','G0/1','S2','G0/1')],
+  ['التوصيلات','أجهزة S1',()=>{for(const [p,n] of [['F0/1','Staff-1'],['F0/2','Staff-2'],['F0/11','Guest-1']]){const a=conn('S1',p,n,'Fa0');if(!a.ok)return a}return OK}],['التوصيلات','S2 F0/1 ↔ Corp-Server',()=>conn('S2','F0/1','Corp-Server','Fa0')],
+  ['S1','VLANs: Staff, Guest, Mgmt',()=>{for(const [v,n] of [[10,'Staff'],[20,'Guest'],[99,'Mgmt']]){const a=vlanNm('S1',v,n);if(!a.ok)return a}return OK}],
+  ['S1','منافذ الـ Access',()=>{for(const [p,v] of [['F0/1',10],['F0/2',10],['F0/11',20]]){const a=accessP('S1',p,v);if(!a.ok)return a}return OK}],['S1','G0/1 trunk',()=>trunkP('S1','G0/1')],
+  ['S1','interface vlan 99 + default-gateway',()=>{const a=sviCfg('S1',99,'192.168.99.2',R24);return a.ok?swGw('S1','192.168.99.1'):a}],
+  ['R1','Subinterfaces الثلاث',()=>{for(const [v,ip] of [[10,'192.168.10.1'],[20,'192.168.20.1'],[99,'192.168.99.1']]){const a=subCfg('R1','G0/0.'+v,v,ip,R24);if(!a.ok)return a}return ifUp('R1','G0/0')}],
+  ['R1','DHCP: عناوين محجوزة',()=>{const a=exclN('R1','192.168.10.1','192.168.10.10');return a.ok?exclN('R1','192.168.20.1','192.168.20.10'):a}],
+  ['R1','DHCP pool STAFF',()=>{let a=poolN('R1','STAFF','192.168.10.0',R24);if(a.ok)a=poolOpt('R1','STAFF','gw','192.168.10.1','default-router');if(a.ok)a=poolOpt('R1','STAFF','dns','172.16.1.10','dns-server');return a}],
+  ['R1','DHCP pool GUEST',()=>{let a=poolN('R1','GUEST','192.168.20.0',R24);if(a.ok)a=poolOpt('R1','GUEST','gw','192.168.20.1','default-router');if(a.ok)a=poolOpt('R1','GUEST','dns','172.16.1.10','dns-server');return a}],
+  ['R1','G0/1 + Default Route',()=>{let a=ifCfg('R1','G0/1','10.0.0.1',R30);if(a.ok)a=routeN('R1','0.0.0.0','0.0.0.0','10.0.0.2');return a}],
+  ['R1','SSH كامل',()=>{let a=domainN('R1','corp.local');if(a.ok)a=userN('R1','admin','Adm1nPa55');if(a.ok)a=rsaN('R1',1024);if(a.ok)a=sshv2('R1');if(a.ok)a=vtySsh('R1');return a}],
+  ['R2','المنافذ',()=>{let a=ifCfg('R2','G0/0','10.0.0.2',R30);if(a.ok)a=ifCfg('R2','G0/1','172.16.1.1',R24);if(a.ok)a=ifUp('R2','G0/1');return a}],
+  ['R2','Static Routes للمبنى',()=>{for(const n of ['192.168.10.0','192.168.20.0','192.168.99.0']){const a=routeN('R2',n,R24,'10.0.0.1');if(!a.ok)return a}return OK}],
+  ['Corp-Server','العنوان والبوابة',()=>hostCfg('Corp-Server','172.16.1.10',R24,'172.16.1.1')],
+  ['Corp-Server','DNS + HTTP',()=>srvSvc('Corp-Server','dns',s=>!s.on||!s.records.some(r=>r.name==='www.corp.local'&&r.ip==='172.16.1.10')?no('DNS: www.corp.local → 172.16.1.10'):N('Corp-Server').svc.http.on?OK:no('شغّل HTTP.'))],
+  ['الأمان','enable secret على الكل',()=>{for(const n of ['R1','R2','S1','S2']){const a=secretIs(n,E55);if(!a.ok)return no(`${n}: ${a.why}`)}return OK}],
+  ['الأمان','كلمة سر الكونسول على الكل',()=>{for(const n of ['R1','R2','S1','S2']){const a=conPw(n,L55);if(!a.ok)return no(`${n}: ${a.why}`)}return OK}],
+  ['الأمان','banner على الكل',()=>{for(const n of ['R1','R2','S1','S2']){const a=bannerHas(n,'Authorized');if(!a.ok)return no(`${n}: ${a.why}`)}return OK}],
+  ['DHCP','Staff-1 و Staff-2 من R1',()=>{const a=leasedFrom('Staff-1','R1');return a.ok?leasedFrom('Staff-2','R1'):a}],['DHCP','Guest-1 من R1 (VLAN 20)',()=>{const a=leasedFrom('Guest-1','R1');return a.ok?hostIn('Guest-1','192.168.20.0',R24,'192.168.20.1'):a}],
+  ['الاتصال','Staff-1 يوصل لـ Guest-1',()=>Dv('Guest-1',g=>pingN('Staff-1',g.ip))],['الاتصال','Staff-1 يوصل لـ S1 (Mgmt)',()=>pingN('Staff-1','192.168.99.2')],
+  ['الاتصال','Staff-1 يفتح www.corp.local',()=>webN('Staff-1','www.corp.local')],['الاتصال','Guest-1 يفتح www.corp.local',()=>webN('Guest-1','www.corp.local')],
+  ['الاتصال','Staff-1 دخل R1 بـ SSH',()=>evN('ssh:Staff-1:R1','من Staff-1: ssh -l admin 192.168.10.1')],
+  ['الحفظ','الكل محفوظ',()=>{for(const n of ['R1','R2','S1','S2']){const a=savedN(n);if(!a.ok)return no(`${n}: ${a.why}`)}return OK}]]},
+];
+
 /* ================= CHECK ================= */
-function evaluate(){return L.reqs.map(([t,c])=>{let r;try{r=c()}catch(e){r=no('الشبكة ناقصة، كمّلها وجرّب مرة ثانية.')}return{t,ok:r.ok,why:r.why}})}
+const isLab=()=>!!(L&&L.items);
+const listOf=()=>isLab()?LABS:LEVELS;
+const lvIndex=()=>listOf().indexOf(L);
+function safe(c){try{const r=c();return typeof r==='boolean'?(r?OK:no('غير مكتمل.')):r}catch(e){return no('الشبكة ناقصة، كمّلها وجرّب مرة ثانية.')}}
+function evaluate(){
+  if(isLab())return L.items.map(([g,t,c])=>{const r=safe(c);return{g,t,ok:r.ok,why:r.why}});
+  return L.reqs.map(([t,c])=>{const r=safe(c);return{t,ok:r.ok,why:r.why}});
+}
 function renderMission(){
   const el=$('#mission');
+  if(isLab()){
+    const pct=S.pct||0;
+    el.innerHTML=`<div class="gh"><span>🧪 ${esc(L.tag)}</span><button class="mini" id="mDoc">📘 التعليمات والعناوين</button></div>
+      <div class="prog"><i style="width:${pct}%"></i></div><small class="note">${S.checks?`آخر فحص: <b>${pct}%</b> مكتمل`:'ابنِ الشبكة حسب التعليمات، وإذا خلصت اضغط ✔ تحقق'}</small>`;
+    $('#mDoc').onclick=showLesson;return;
+  }
   if(!L.reqs.length){el.innerHTML='<div class="gh"><span>🧪 وضع حر: ابنِ أي شبكة وجرّبها</span></div>';return}
   const last=S.last||[];
   el.innerHTML=`<div class="gh" id="mToggle"><span>📋 المهمة${S.checks?` · آخر تحقق: ${last.filter(x=>x).length}/${L.reqs.length}`:''}</span>${missionOpen?'▴':'▾'}</div>`+
@@ -1373,19 +2055,31 @@ function renderMission(){
 }
 function runCheck(){
   if(busy)return toast('انتظر حتى تخلص الرسالة الحالية','',1300);
-  const res=evaluate(),pass=res.every(r=>r.ok);
-  S.checks=(S.checks||0)+1;S.last=res.map(r=>r.ok);renderMission();
-  if(pass){
-    const stars=Math.max(1,3-(S.hint?1:0)-(S.checks>2?1:0));
-    P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);S.won=true;save();
-    return showWin(stars,res);
-  }
-  save();
-  const n=res.filter(r=>r.ok).length;
-  modal(`<h3>❌ ما تعدّيت المرحلة بعد</h3><p style="color:var(--muted);margin:2px 0">حققت ${n} من ${res.length} — صلّح اللي باللون الأحمر وتحقق مرة ثانية.</p>
+  const res=evaluate(),okN=res.filter(r=>r.ok).length,pct=Math.round(okN/res.length*100),pass=okN===res.length;
+  S.checks=(S.checks||0)+1;S.last=res.map(r=>r.ok);S.pct=pct;
+  P.pct=P.pct||{};P.pct[L.id]=Math.max(P.pct[L.id]||0,pct);
+  let stars=0;
+  if(pass){stars=Math.max(1,3-(S.hint?1:0)-(S.checks>(isLab()?3:2)?1:0));P.stars[L.id]=Math.max(P.stars[L.id]||0,stars);S.won=true}
+  save();renderMission();
+  if(isLab())return showResults(res,pct,pass,stars);
+  if(pass)return showWin(stars,res);
+  modal(`<h3>❌ ما تعدّيت المرحلة بعد</h3><p style="color:var(--muted);margin:2px 0">حققت ${okN} من ${res.length} — صلّح اللي باللون الأحمر وتحقق مرة ثانية.</p>
     <ul class="res">${res.map(r=>`<li class="${r.ok?'ok':'no'}">${r.ok?'✅':'❌'} ${esc(r.t)}${r.ok?'':`<small>${esc(r.why||'')}</small>`}</li>`).join('')}</ul>
     <div class="mbtns"><button class="pri" id="mOk">رجوع للتعديل 🔧</button></div>`);
   $('#mOk').onclick=closeModal;
+}
+function showResults(res,pct,win,stars){
+  const groups=[...new Set(res.map(r=>r.g))],i=lvIndex(),last=i===LABS.length-1;
+  modal(`<h3>${win?(last?'🏆 مبروك! أنهيت كل اللابات':'🎉 أحسنت! أنهيت اللاب'):'📊 Activity Results'}</h3>
+    ${win?`<div class="big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div><p style="text-align:center;color:var(--muted);margin:0">${stars===3?'أداء مثالي!':(S.hint?'استخدمت الحل (−⭐) ':'')+(S.checks>3?'· فحصت أكثر من 3 مرات (−⭐)':'')}</p>`:''}
+    <div class="pct">Completion: <b>${pct}%</b></div><div class="prog big"><i style="width:${pct}%"></i></div>
+    <p class="note" style="margin:6px 0 8px;font-size:13px">Assessment Items — ${res.filter(r=>r.ok).length} من ${res.length} بند</p>
+    ${groups.map(g=>{const it=res.filter(r=>r.g===g),ok=it.filter(r=>r.ok).length;
+      return `<details class="grp" ${ok<it.length?'open':''}><summary>${ok===it.length?'✅':'⚠️'} ${esc(g)} <span>${ok}/${it.length}</span></summary><ul class="res">${it.map(r=>`<li class="${r.ok?'ok':'no'}">${r.ok?'✅':'❌'} ${esc(r.t)}${r.ok?'':`<small>${esc(r.why||'')}</small>`}</li>`).join('')}</ul></details>`}).join('')}
+    <div class="mbtns">${win?`${last?'':'<button class="pri" id="mNext">اللاب التالي ←</button>'}<button id="mOk">أكمل هنا</button><button id="mHome">القائمة</button>`:'<button class="pri" id="mOk">رجوع للتعديل 🔧</button>'}</div>`);
+  $('#mOk').onclick=closeModal;
+  if($('#mNext'))$('#mNext').onclick=()=>{closeModal();openLevel(LABS[i+1],false)};
+  if($('#mHome'))$('#mHome').onclick=()=>{closeModal();goHome()};
 }
 
 /* ================= UI ================= */
@@ -1399,8 +2093,8 @@ function buildToolbar(){
   document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addDevice(b.dataset.add));
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 }
-const lvIndex=()=>LEVELS.indexOf(L);
 function showLesson(){
+  if(isLab()){modal(labDoc(L)+`<div class="mbtns"><button class="pri" id="mGo">ابدأ البناء 🚀</button></div>`);$('#mGo').onclick=closeModal;return}
   if(!L.lesson)return;
   modal(`<span class="tag">المرحلة ${lvIndex()+1} · ${esc(L.tag)}</span><h3>📘 ${esc(L.title)}</h3>${L.lesson}
     ${L.cli?'<p class="lockn">⌨️ هذي المرحلة <b>بالأوامر</b>: الراوتر والسويتش يتجهّزون من تبويب <b>CLI</b> فقط (الكمبيوترات والسيرفرات عادي).</p>':''}<div class="task">🎯 المهمة: ${esc(L.task)}<ol class="reqs">${L.reqs.map(([t])=>`<li>${esc(t)}</li>`).join('')}</ol></div>
@@ -1410,7 +2104,7 @@ function showLesson(){
 }
 function showWin(stars,res){
   const i=lvIndex(),last=i===LEVELS.length-1;
-  modal(`<h3 style="text-align:center">${last?'🏆 مبروك! ختمت الأكاديمية':'🎉 تعدّيت المرحلة!'}</h3><div class="big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+  modal(`<h3 style="text-align:center">${last?'🏆 مبروك! ختمت التدريبات':'🎉 تعدّيت المرحلة!'}</h3><div class="big">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
    <p style="text-align:center;color:var(--muted);margin:0">${stars===3?'أداء مثالي!':(S.hint?'استخدمت التلميح (−⭐) ':'')+(S.checks>2?'· تحققت أكثر من مرتين (−⭐)':'')}</p>
    <ul class="res">${res.map(r=>`<li class="ok">✅ ${esc(r.t)}</li>`).join('')}</ul>
    <div class="mbtns">${last?'':'<button class="pri" id="mNext">المرحلة التالية ←</button>'}<button id="mStay">أكمل هنا</button><button id="mHome">القائمة</button></div>`);
@@ -1418,38 +2112,56 @@ function showWin(stars,res){
   $('#mStay').onclick=closeModal;
   $('#mHome').onclick=()=>{closeModal();goHome()};
 }
+function buildSetup(lv){
+  const r=svg.getBoundingClientRect(),W=Math.max(r.width,320),H=Math.max(r.height,340);
+  const B={
+    dev(n,type,x,y,p={}){const d=newDev(type,uid(),n);Object.assign(d,p);d.x=Math.round(40+x/100*(W-80));d.y=Math.round(36+y/100*(H-100));S.devices.push(d);return d},
+    link(a,pa,b,pb,type){const A=N(a),B2=N(b);connect(A.id,B2.id,true,{pa:pidx(A,pa),pb:pidx(B2,pb),type:type||'auto'})},
+    cli(n,lines){const d=N(n),ss={st:newSt(),out:()=>{},remote:false};lines.forEach(l=>cliExec(d,l,ss))}
+  };
+  lv.setup(B);
+  Object.keys(termHist).forEach(k=>delete termHist[k]);
+}
 function openLevel(lv,fresh){
   L=lv;$('#home').hidden=true;$('#game').hidden=false;$('#sheet').hidden=true;openId=null;
-  Object.keys(termHist).forEach(k=>delete termHist[k]);Object.keys(webState).forEach(k=>delete webState[k]);
-  $('#gTitle').innerHTML=esc((L.id==='lab'?'🧪 ':(lvIndex()+1)+'. ')+L.title)+(L.cli?'<span class="cli-tag">⌨️ CLI</span>':'');
-  $('#gLesson').hidden=$('#gHint').hidden=$('#checkBtn').hidden=!L.lesson;
+  [termHist,webState,cliSt,pcSess].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
+  const n=lvIndex()+1;
+  $('#gTitle').innerHTML=L.id==='lab'?'🧪 '+esc(L.title):esc((isLab()?'لاب ':'')+n+'. '+L.title)+(L.cli?'<span class="cli-tag">⌨️ CLI</span>':'');
+  $('#gLesson').hidden=$('#gHint').hidden=$('#checkBtn').hidden=!L.lesson&&!L.items;
   buildToolbar();
   const saved=!fresh&&P.cur&&P.cur.lvl===L.id;
-  S=saved?P.cur.S:{devices:[],links:[],hint:false,checks:0,last:null,won:false};Object.keys(cliSt).forEach(k=>delete cliSt[k]);
+  S=saved?P.cur.S:{devices:[],links:[],hint:false,checks:0,last:null,won:false,ev:{},pct:0};
+  if(!saved&&L.setup)buildSetup(L);
   missionOpen=true;setMode('move');renderMission();save();
   if(!saved)showLesson();
 }
 function goHome(){
   L=null;$('#game').hidden=true;$('#sheet').hidden=true;$('#home').hidden=false;openId=null;
-  const tot=LEVELS.reduce((a,l)=>a+(P.stars[l.id]||0),0);
-  $('#total').textContent=`⭐ ${tot} / ${LEVELS.length*3}`;
-  $('#grid').innerHTML=LEVELS.map((l,i)=>{const st=P.stars[l.id]||0,lock=i>0&&!P.stars[LEVELS[i-1].id];
-    return `<button class="card ${lock?'locked':''} ${st?'done':''}" data-i="${i}"><span class="n">${lock?'🔒':i+1}</span>${l.cli?'<span class="cli-tag">⌨️ CLI</span>':''}<b>${esc(l.title)}</b><small>${esc(l.tag)}</small><span class="st">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</span></button>`}).join('')+
+  const tr=P.track||'labs',list=tr==='labs'?LABS:LEVELS;P.pct=P.pct||{};
+  $('#htabs').innerHTML=`<button data-t="labs" class="${tr==='labs'?'on':''}">🧪 لابات Packet Tracer</button><button data-t="levels" class="${tr==='levels'?'on':''}">🎓 تدريبات سريعة</button>`;
+  document.querySelectorAll('#htabs button').forEach(b=>b.onclick=()=>{P.track=b.dataset.t;storeP();goHome()});
+  $('#hsub').textContent=tr==='labs'?'لابات بنفس أسلوب Cisco Packet Tracer: تعليمات وجدول عناوين، تبني من الصفر، وتشوف نسبة الإنجاز (Completion)':'مراحل قصيرة: كل مرحلة مهمة تبنيها من الصفر وتضغط «تحقق»';
+  const tot=list.reduce((a,l)=>a+(P.stars[l.id]||0),0);
+  $('#total').textContent=`⭐ ${tot} / ${list.length*3}`;
+  $('#grid').innerHTML=list.map((l,i)=>{const st=P.stars[l.id]||0,lock=i>0&&!P.stars[list[i-1].id],pc=P.pct[l.id]||0;
+    return `<button class="card ${lock?'locked':''} ${st?'done':''}" data-i="${i}"><span class="n">${lock?'🔒':i+1}</span>${l.cli?'<span class="cli-tag">⌨️ CLI</span>':''}${l.level?`<span class="lvl lv-${l.level}">${esc(l.level)}</span>`:''}
+      <b>${esc(l.title)}</b><small>${esc(l.tag)}</small>${tr==='labs'&&pc&&!st?`<span class="cpct">${pc}%</span>`:''}<span class="st">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</span></button>`}).join('')+
     `<button class="card lab" data-i="lab"><span class="n">🧪</span><b>${LAB.title}</b><small>${LAB.tag}</small></button>`;
   document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{
-    if(c.classList.contains('locked'))return toast('تعدّى المرحلة اللي قبلها أول 🔒','',1600);
-    openLevel(c.dataset.i==='lab'?LAB:LEVELS[+c.dataset.i],false);
+    if(c.classList.contains('locked'))return toast('خلّص اللي قبله أول 🔒','',1600);
+    openLevel(c.dataset.i==='lab'?LAB:list[+c.dataset.i],false);
   });
 }
 $('#gBack').onclick=goHome;
 $('#gLesson').onclick=showLesson;
 $('#checkBtn').onclick=runCheck;
 $('#gHint').onclick=()=>{
-  modal(`<h3>💡 تلميح</h3>${S.hint?'':'<p style="color:var(--muted);font-size:13.5px">(فتح التلميح ينقص نجمة من تقييم المرحلة)</p>'}<p>${esc(L.hint)}</p><div class="mbtns"><button class="pri" id="mOk">فهمت</button></div>`);
+  const h=L.hint||'';
+  modal(`<h3>💡 ${isLab()?'الحل':'تلميح'}</h3>${S.hint?'':'<p style="color:var(--muted);font-size:13.5px">(فتحه ينقص نجمة من التقييم)</p>'}${h.startsWith('<')?h:`<p>${esc(h)}</p>`}<div class="mbtns"><button class="pri" id="mOk">فهمت</button></div>`);
   S.hint=true;save();$('#mOk').onclick=closeModal;
 };
-$('#gReset').onclick=()=>{if(confirm('تبغى تمسح الشبكة وتبدأ المرحلة من جديد؟'))openLevel(L,true)};
-$('#resetAll').onclick=()=>{if(confirm('متأكد؟ بينمسح كل تقدّمك.')){P={stars:{},cur:null};storeP();goHome()}};
+$('#gReset').onclick=()=>{if(confirm('تبغى تمسح الشبكة وتبدأ من جديد؟'))openLevel(L,true)};
+$('#resetAll').onclick=()=>{if(confirm('متأكد؟ بينمسح كل تقدّمك.')){P={stars:{},pct:{},cur:null,track:P.track};storeP();goHome()}};
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeModal()};
 goHome();
 </script>
